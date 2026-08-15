@@ -93,7 +93,7 @@ export default async function AdminProductsPage() {
                     </td>
 
                     <td className="px-6 py-4 text-sm">
-                      ₹{Number(product.base_price).toFixed(2)}
+                      Rs. {Number(product.base_price).toFixed(2)}
                     </td>
 
                     <td className="px-6 py-4 text-sm text-gray-600">

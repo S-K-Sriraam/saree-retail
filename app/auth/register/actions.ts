@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function register(formData: FormData) {
     const email = String(formData.get("email") ?? "");
@@ -21,7 +22,7 @@ export async function register(formData: FormData) {
             data: {
                 full_name: fullName,
             },
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
+            emailRedirectTo: `${getSiteUrl()}/auth/callback`,
         },
     });
 

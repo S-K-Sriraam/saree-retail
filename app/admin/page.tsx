@@ -14,16 +14,16 @@ export default async function AdminPage() {
         .maybeSingle();
 
     return (
-        <main className="min-h-screen bg-grey-100 p-8">
+        <main className="min-h-screen bg-gray-100 p-8">
             <div className="mx-auto max-w-7xl">
                 <div className="mb-8">
-                    <p className="text-sm text-grey-500">Saree Retail</p>
+                    <p className="text-sm text-gray-500">Saree Retail</p>
 
-                    <h1 className="mt-1 text-3xl font-bold text-grey-900">
+                    <h1 className="mt-1 text-3xl font-bold text-gray-900">
                         Admin Dashboard
                     </h1>
 
-                    <p className="mt-2 text-grey-600">
+                    <p className="mt-2 text-gray-600">
                         Welcome back, {profile?.full_name || "Admin"}.
                     </p>
                 </div>
