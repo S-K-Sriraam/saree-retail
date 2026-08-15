@@ -1,14 +1,27 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { tryGetSupabaseEnv } from "./env";
 
 export async function updateSession(request: NextRequest) {
+    const env = tryGetSupabaseEnv();
+
+    if (!env) {
+        console.error(
+            "Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in Vercel, then redeploy."
+        );
+
+        return NextResponse.next({
+            request,
+        });
+    }
+
     let supabaseResponse = NextResponse.next ({
         request,
     })
 
     const supabase = createServerClient (
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+        env.url,
+        env.publishableKey,
         {
             cookies: {
                 getAll() {
