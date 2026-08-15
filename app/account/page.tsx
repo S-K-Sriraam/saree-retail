@@ -1,23 +1,28 @@
 import { redirect } from "next/navigation";
+import { isConfiguredAdminEmail } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "./actions";
 
 export default async function AccountPage() {
   const supabase = await createClient();
 
-  const { data } = await supabase.auth.getClaims();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!data?.claims) {
+  if (!user) {
     redirect("/auth/login");
   }
-
-  const userId = data.claims.sub;
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, role")
-    .eq("id", userId)
-    .single();
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.role === "admin" || isConfiguredAdminEmail(user.email)) {
+    redirect("/admin");
+  }
 
   return (
     <main>
@@ -32,7 +37,7 @@ export default async function AccountPage() {
       </p>
 
       <p>
-        User ID: {userId}
+        User ID: {user.id}
       </p>
 
       <form action={logout}>

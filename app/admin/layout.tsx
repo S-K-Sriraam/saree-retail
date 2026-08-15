@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { isConfiguredAdminEmail } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminLayout({
@@ -18,14 +19,14 @@ export default async function AdminLayout({
     }
 
     // Get user's profile and role
-    const { data: profile } = await supabase 
+    const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("full_name, role")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
     // User doesn't have admin rivileges
-    if (!profile || profile.role !== "admin") {
+    if ((profileError || profile?.role !== "admin") && !isConfiguredAdminEmail(user.email)) {
         redirect("/account");
     }
 

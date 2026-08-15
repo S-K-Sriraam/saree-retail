@@ -44,7 +44,11 @@ export async function updateSession(request: NextRequest) {
         }
     );
 
-    await supabase.auth.getClaims();
+    const { error } = await supabase.auth.getUser();
+
+    if (error) {
+        console.error("Error refreshing Supabase session:", error.message);
+    }
 
     return supabaseResponse;
 }

@@ -11,7 +11,7 @@ export default async function AdminPage() {
         .from("profiles")
         .select("full_name, role") 
         .eq("id", user!.id)
-        .single();
+        .maybeSingle();
 
     return (
         <main className="min-h-screen bg-grey-100 p-8">
@@ -24,7 +24,7 @@ export default async function AdminPage() {
                     </h1>
 
                     <p className="mt-2 text-grey-600">
-                        Welcome back, {profile?.full_name}.
+                        Welcome back, {profile?.full_name || "Admin"}.
                     </p>
                 </div>
 
