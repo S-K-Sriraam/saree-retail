@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import LayoutWrapper from "@/components/ui/LayoutWrapper";
 
 export const metadata: Metadata = {
-  title: "Geethvarnam",
-  description: "Women's Ethnic Fashion",
+  title: "Geethvarnam | Luxury Saree & Chudar Boutique",
+  description: "Authentic Kanchipuram Silks, Banarasi Brocades, Royal Anarkalis & Designer Chudars with 3D Fabric Drape Simulation.",
 };
 
 export default function RootLayout({
@@ -12,8 +13,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        <LayoutWrapper>{children}</LayoutWrapper>
+      </body>
     </html>
   );
 }

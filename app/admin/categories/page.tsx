@@ -1,211 +1,147 @@
-import { createClient } from "@/lib/supabase/server";
-import { createCategory } from "./actions";
+"use client";
 
-type CategoriesPageProps = {
-  searchParams: Promise<{
-    success?: string;
-    error?: string;
-  }>;
-};
+import React from "react";
+import Link from "next/link";
+import { Layers, Sparkles, Plus, ArrowRight } from "lucide-react";
+import { useBoutique } from "@/lib/store";
+import { BOUTIQUE_CATEGORIES, FABRICS_LIST } from "@/lib/mock-data";
 
-export default async function CategoriesPage({
-  searchParams,
-}: CategoriesPageProps) {
-  const supabase = await createClient();
+export default function AdminCategoriesPage() {
+  const { products } = useBoutique();
 
-  const { data: categories, error } = await supabase
-    .from("categories")
-    .select(
-      "id, name, slug, description, image_url, is_active, created_at"
-    )
-    .order("created_at", { ascending: false });
-
-  const params = await searchParams;
+  const sarees = products.filter(p => p.category === "saree");
+  const chudars = products.filter(p => p.category === "chudar");
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-8">
-          <p className="text-sm text-gray-500">Saree Retail</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="border-b border-amber-500/20 pb-6">
+        <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+          Classification & Weaves
+        </span>
+        <h1 className="mt-1 text-2xl font-bold text-white font-serif-luxury sm:text-3xl">
+          Categories, Weaves & Fabric Collections
+        </h1>
+        <p className="mt-1 text-xs text-stone-400">
+          Manage product classifications for Saree Couture and Chudar & Salwar Suite collections.
+        </p>
+      </div>
 
-          <h1 className="mt-1 text-3xl font-bold text-gray-900">
-            Categories
-          </h1>
+      {/* 2 Core Collection Pillars */}
+      <div className="grid gap-8 md:grid-cols-2">
+        {/* Saree Pillar */}
+        <div className="rounded-3xl border border-amber-500/30 bg-[#14111a] p-6 shadow-xl space-y-5">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div>
+              <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-300 uppercase">
+                Core Category 01
+              </span>
+              <h2 className="mt-2 text-xl font-bold text-white font-serif-luxury">
+                Saree Couture Collection
+              </h2>
+            </div>
+            <span className="text-2xl font-bold text-amber-300 font-serif-luxury">
+              {sarees.length} Pieces
+            </span>
+          </div>
 
-          <p className="mt-2 text-gray-600">
-            Create and manage product categories.
+          <p className="text-xs text-stone-400">
+            Handcrafted six-yard handlooms including heirloom Kanchipuram bridal silks, Banarasi kadwa jaal, and pure tissue organzas.
           </p>
+
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-stone-300">
+              Active Subcollections:
+            </h4>
+            {[
+              { name: "Kanchipuram Silk", count: sarees.filter(s => s.subcategory.includes("Kanchipuram")).length },
+              { name: "Banarasi Silk", count: sarees.filter(s => s.subcategory.includes("Banarasi")).length },
+              { name: "Organza Sarees", count: sarees.filter(s => s.subcategory.includes("Organza")).length },
+              { name: "Chiffon & Georgette", count: sarees.filter(s => s.subcategory.includes("Chiffon")).length },
+            ].map((sub) => (
+              <div key={sub.name} className="flex items-center justify-between rounded-xl bg-white/5 p-3 text-xs">
+                <span className="font-semibold text-white">{sub.name}</span>
+                <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-300">
+                  {sub.count} items live
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <Link
+            href="/admin/products"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:underline pt-2"
+          >
+            <span>Add Saree Creation &rarr;</span>
+          </Link>
         </div>
 
-        {params.success && (
-          <div className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-            {params.success}
-          </div>
-        )}
-
-        {params.error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {params.error}
-          </div>
-        )}
-
-        <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
-          {/* Create Category */}
-          <section className="rounded-xl bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Add Category
-            </h2>
-
-            <p className="mt-1 text-sm text-gray-500">
-              Create a category for your saree products.
-            </p>
-
-            <form action={createCategory} className="mt-6 space-y-5">
-              <div>
-                <label
-                  htmlFor="name"
-                  className="mb-2 block text-sm font-medium text-gray-700"
-                >
-                  Category Name
-                </label>
-
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  placeholder="Kanchipuram Silk"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="description"
-                  className="mb-2 block text-sm font-medium text-gray-700"
-                >
-                  Description
-                </label>
-
-                <textarea
-                  id="description"
-                  name="description"
-                  rows={4}
-                  placeholder="Traditional silk sarees..."
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="image_url"
-                  className="mb-2 block text-sm font-medium text-gray-700"
-                >
-                  Image URL
-                </label>
-
-                <input
-                  id="image_url"
-                  name="image_url"
-                  type="url"
-                  placeholder="https://..."
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black"
-                />
-
-                <p className="mt-1 text-xs text-gray-500">
-                  Optional. We will add proper image storage later.
-                </p>
-              </div>
-
-              <label className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="is_active"
-                  defaultChecked
-                  className="h-4 w-4"
-                />
-
-                <span className="text-sm text-gray-700">
-                  Active category
-                </span>
-              </label>
-
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-black px-5 py-3 text-sm font-medium text-white hover:bg-gray-800"
-              >
-                Create Category
-              </button>
-            </form>
-          </section>
-
-          {/* Category List */}
-          <section className="overflow-hidden rounded-xl bg-white shadow-sm">
-            <div className="border-b px-6 py-5">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Existing Categories
+        {/* Chudar Pillar */}
+        <div className="rounded-3xl border border-emerald-500/30 bg-[#14111a] p-6 shadow-xl space-y-5">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div>
+              <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 uppercase">
+                Core Category 02
+              </span>
+              <h2 className="mt-2 text-xl font-bold text-white font-serif-luxury">
+                Chudar & Salwar Suite
               </h2>
-
-              <p className="mt-1 text-sm text-gray-500">
-                {categories?.length ?? 0} categories
-              </p>
             </div>
+            <span className="text-2xl font-bold text-emerald-300 font-serif-luxury">
+              {chudars.length} Pieces
+            </span>
+          </div>
 
-            {error ? (
-              <div className="p-6 text-sm text-red-600">
-                Unable to load categories.
+          <p className="text-xs text-stone-400">
+            Tailored ethnic ensembles including floor-length Anarkalis, straight-cut Chanderi suits, flared palazzos, and Shararas.
+          </p>
+
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-stone-300">
+              Active Subcollections:
+            </h4>
+            {[
+              { name: "Royal Anarkali Suits", count: chudars.filter(c => c.subcategory.includes("Anarkali")).length },
+              { name: "Straight Cut Salwar", count: chudars.filter(c => c.subcategory.includes("Straight")).length },
+              { name: "Palazzo Suits", count: chudars.filter(c => c.subcategory.includes("Palazzo")).length },
+              { name: "Sharara & Gharara Sets", count: chudars.filter(c => c.subcategory.includes("Sharara")).length },
+            ].map((sub) => (
+              <div key={sub.name} className="flex items-center justify-between rounded-xl bg-white/5 p-3 text-xs">
+                <span className="font-semibold text-white">{sub.name}</span>
+                <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
+                  {sub.count} items live
+                </span>
               </div>
-            ) : categories && categories.length > 0 ? (
-              <div className="divide-y">
-                {categories.map((category) => (
-                  <div
-                    key={category.id}
-                    className="flex items-center justify-between gap-6 px-6 py-5"
-                  >
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        {category.name}
-                      </h3>
+            ))}
+          </div>
 
-                      <p className="mt-1 text-sm text-gray-500">
-                        /{category.slug}
-                      </p>
-
-                      {category.description && (
-                        <p className="mt-2 text-sm text-gray-600">
-                          {category.description}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      {category.is_active ? (
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-                          Inactive
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="px-6 py-16 text-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  No categories yet
-                </h3>
-
-                <p className="mt-2 text-sm text-gray-500">
-                  Create your first category using the form.
-                </p>
-              </div>
-            )}
-          </section>
+          <Link
+            href="/admin/products"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:underline pt-2"
+          >
+            <span>Add Chudar Creation &rarr;</span>
+          </Link>
         </div>
       </div>
-    </main>
+
+      {/* Fabrics List Reference */}
+      <div className="rounded-3xl border border-white/10 bg-[#14111a] p-6 shadow-xl space-y-4">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+          Certified Handloom Fabric Types
+        </h3>
+        <p className="text-xs text-stone-400">
+          Textile foundations supported across our 3D drape simulators and inventory catalog:
+        </p>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+          {FABRICS_LIST.filter(f => f !== "All Fabrics").map((fabric) => (
+            <div key={fabric} className="rounded-2xl border border-white/10 bg-white/5 p-3.5 text-xs">
+              <span className="font-bold text-white block">{fabric}</span>
+              <span className="text-[10px] text-amber-400 mt-1 block">Silkmark Inspected</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
