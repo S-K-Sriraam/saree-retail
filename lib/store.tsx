@@ -100,14 +100,14 @@ interface BoutiqueContextType {
 const BoutiqueContext = createContext<BoutiqueContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  PRODUCTS: "gv_boutique_clean_slate_v5_prods",
-  ORDERS: "gv_boutique_clean_slate_v5_ords",
-  CART: "gv_boutique_clean_slate_v5_cart",
-  WISHLIST: "gv_boutique_clean_slate_v5_wish",
-  CUSTOMER: "gv_boutique_clean_slate_v5_cust",
-  ADMIN: "gv_boutique_clean_slate_v5_adm",
-  COUPON: "gv_boutique_clean_slate_v5_coup",
-  OTP_SESSION: "gv_boutique_clean_slate_v5_otp"
+  PRODUCTS: "gv_boutique_fresh_slate_v6_prods",
+  ORDERS: "gv_boutique_fresh_slate_v6_ords",
+  CART: "gv_boutique_fresh_slate_v6_cart",
+  WISHLIST: "gv_boutique_fresh_slate_v6_wish",
+  CUSTOMER: "gv_boutique_fresh_slate_v6_cust",
+  ADMIN: "gv_boutique_fresh_slate_v6_adm",
+  COUPON: "gv_boutique_fresh_slate_v6_coup",
+  OTP_SESSION: "gv_boutique_fresh_slate_v6_otp"
 };
 
 export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

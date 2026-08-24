@@ -106,11 +106,17 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Weave / Subcategory */}
         <div className="flex items-center justify-between text-xs text-amber-800">
           <span className="font-semibold">{product.subcategory}</span>
-          <div className="flex items-center gap-1 text-amber-500">
-            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-            <span className="text-[11px] font-bold text-stone-700">{product.rating}</span>
-            <span className="text-[10px] text-stone-400">({product.reviews_count})</span>
-          </div>
+          {product.reviews_count > 0 ? (
+            <div className="flex items-center gap-1 text-amber-500">
+              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+              <span className="text-[11px] font-bold text-stone-700">{product.rating}</span>
+              <span className="text-[10px] text-stone-400">({product.reviews_count})</span>
+            </div>
+          ) : (
+            <span className="text-[10px] font-semibold text-amber-800 bg-amber-50/80 px-2 py-0.5 rounded-full border border-amber-900/10">
+              Pure Handloom
+            </span>
+          )}
         </div>
 
         {/* Product Name */}

@@ -370,64 +370,60 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. CONNOISSEUR REVIEWS & TESTIMONIALS */}
+      {/* 6. BOUTIQUE PILLARS OF EXCELLENCE & HERITAGE PROMISES */}
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="text-center">
           <p className="text-xs font-bold uppercase tracking-wider text-amber-800">
-            Connoisseur Trust & Heritage
+            The Geethvarnam Standard
           </p>
           <h2 className="mt-2 text-2xl font-bold text-stone-900 font-serif-luxury sm:text-3xl">
-            Praised by Brides & Ethnic Aficionados
+            Pillars of Artisanal Luxury & Royal Craft
           </h2>
+          <p className="mt-2 text-xs text-stone-600 max-w-xl mx-auto">
+            From the handloom shuttle to your doorstep wardrobe, every garment is crafted with zero compromise.
+          </p>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {[
-            {
-              author: "Ananya Deshmukh",
-              city: "Mumbai",
-              comment: "The Kanchipuram bridal weave is magnificent. The gold zari has the authentic antique luster and the fall & pico finishing was spotless.",
-              rating: 5
-            },
-            {
-              author: "Dr. Radhika Sen",
-              city: "Kolkata",
-              comment: "Bespoke tailoring on the Anarkali chudar fit like a glove. Received so many compliments on Diwali. Truly exceptional craft.",
-              rating: 5
-            },
-            {
-              author: "Meera Krishnan",
-              city: "Bengaluru",
-              comment: "The 3D drape preview helped me visualize the Banarasi silk texture before ordering. Delivered in tamper-proof insured packaging.",
-              rating: 5
-            }
-          ].map((review, idx) => (
-            <div
-              key={idx}
-              className="flex flex-col justify-between rounded-3xl border border-amber-900/10 bg-white p-6 shadow-sm"
-            >
-              <div>
-                <div className="flex items-center gap-1 text-amber-400">
-                  {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-400" />
-                  ))}
-                </div>
-                <p className="mt-4 text-xs text-stone-700 leading-relaxed italic">
-                  &ldquo;{review.comment}&rdquo;
-                </p>
-              </div>
-
-              <div className="mt-6 border-t border-stone-100 pt-4 flex items-center justify-between">
-                <div>
-                  <h4 className="text-xs font-bold text-stone-900">{review.author}</h4>
-                  <p className="text-[10px] text-stone-500">{review.city} &bull; Verified Connoisseur</p>
-                </div>
-                <span className="rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-semibold px-2 py-0.5">
-                  Verified Patron
-                </span>
-              </div>
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-3xl border border-amber-900/10 bg-white p-6 shadow-sm text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-800">
+              <Award className="h-6 w-6" />
             </div>
-          ))}
+            <h3 className="mt-4 text-sm font-bold text-stone-900 font-serif-luxury">100% Pure Silkmark</h3>
+            <p className="mt-2 text-xs text-stone-600 leading-relaxed">
+              Certified authentic pure mulberry and katan silks with tamper-proof government QR tags.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-amber-900/10 bg-white p-6 shadow-sm text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-800">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 text-sm font-bold text-stone-900 font-serif-luxury">Real Gold & Silver Zari</h3>
+            <p className="mt-2 text-xs text-stone-600 leading-relaxed">
+              Tested electroplated zari threads that retain their luminous royal sheen for generations.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-amber-900/10 bg-white p-6 shadow-sm text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-800">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 text-sm font-bold text-stone-900 font-serif-luxury">Bespoke Couture Tailoring</h3>
+            <p className="mt-2 text-xs text-stone-600 leading-relaxed">
+              Master artisan tailors custom-stitch blouse cuts, fall-pico, and chudar sets to exact measurements.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-amber-900/10 bg-white p-6 shadow-sm text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-800">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 text-sm font-bold text-stone-900 font-serif-luxury">Insured Global Delivery</h3>
+            <p className="mt-2 text-xs text-stone-600 leading-relaxed">
+              Dispatched in rigid velvet-lined luxury boxes with 100% transit insurance and live tracking.
+            </p>
+          </div>
         </div>
       </section>
     </main>

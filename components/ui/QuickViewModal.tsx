@@ -85,11 +85,17 @@ export default function QuickViewModal() {
         <div className="flex flex-1 flex-col overflow-y-auto p-6 md:p-8">
           <div className="flex items-center justify-between text-xs text-amber-800">
             <span className="font-semibold uppercase tracking-wider">{product.subcategory}</span>
-            <div className="flex items-center gap-1">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              <span className="font-bold text-stone-800">{product.rating}</span>
-              <span className="text-stone-400">({product.reviews_count} reviews)</span>
-            </div>
+            {product.reviews_count > 0 ? (
+              <div className="flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                <span className="font-bold text-stone-800">{product.rating}</span>
+                <span className="text-stone-400">({product.reviews_count} reviews)</span>
+              </div>
+            ) : (
+              <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-900/10">
+                100% Authentic Handloom
+              </span>
+            )}
           </div>
 
           <h2 className="mt-2 text-xl font-bold text-stone-900 font-serif-luxury sm:text-2xl">

@@ -18,7 +18,6 @@ import {
   MapPin
 } from "lucide-react";
 import { useBoutique } from "@/lib/store";
-import { INITIAL_REVIEWS } from "@/lib/mock-data";
 import SareeDrapeStudio from "@/components/three/SareeDrapeStudio";
 import ProductCard from "@/components/ui/ProductCard";
 
@@ -195,11 +194,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <div>
               <div className="flex items-center justify-between text-xs text-amber-800">
                 <span className="font-bold uppercase tracking-wider">{product.subcategory}</span>
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-stone-900">{product.rating}</span>
-                  <span className="text-stone-500">({product.reviews_count} Connoisseur Reviews)</span>
-                </div>
+                {product.reviews_count > 0 ? (
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <span className="font-bold text-stone-900">{product.rating}</span>
+                    <span className="text-stone-500">({product.reviews_count} Reviews)</span>
+                  </div>
+                ) : (
+                  <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-900/10">
+                    ✨ 100% Authentic Handloom Silk
+                  </span>
+                )}
               </div>
 
               <h1 className="mt-2 text-2xl font-bold text-stone-900 font-serif-luxury sm:text-3xl">
