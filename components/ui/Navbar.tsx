@@ -33,6 +33,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sareeDropdownOpen, setSareeDropdownOpen] = useState(false);
   const [chudarDropdownOpen, setChudarDropdownOpen] = useState(false);
+  const [authDropdownOpen, setAuthDropdownOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -44,41 +45,6 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md transition">
-      {/* Top Privilege Announcement Bar */}
-      <div className="bg-[#100d14] px-4 py-2 text-center text-xs font-medium tracking-wider text-amber-200/90 border-b border-amber-500/20">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="hidden items-center gap-1.5 sm:flex text-amber-300/80">
-            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-            <span>Handcrafted Heritage Weaves</span>
-          </div>
-
-          <div className="mx-auto flex items-center gap-2">
-            <span>Festive Celebration: Use Code <strong className="text-amber-300 font-bold tracking-widest">SILK2026</strong> for 15% OFF</span>
-            <span className="hidden md:inline text-amber-400/40">&bull;</span>
-            <span className="hidden md:inline">Complimentary Heirloom Box</span>
-          </div>
-
-          {/* Quick Dual Auth Links */}
-          <div className="flex items-center gap-3 text-[11px]">
-            {adminUser ? (
-              <Link 
-                href="/admin" 
-                className="flex items-center gap-1 text-amber-400 font-semibold hover:underline"
-              >
-                <ShieldAlert className="h-3 w-3" /> Admin Console
-              </Link>
-            ) : (
-              <Link 
-                href="/admin/login" 
-                className="flex items-center gap-1 text-amber-300/70 hover:text-amber-200 transition"
-              >
-                <ShieldAlert className="h-3 w-3" /> Admin Login
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Main Boutique Navbar */}
       <div className="border-b border-amber-900/10 bg-[#faf7f2]/95 shadow-sm transition">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
@@ -300,7 +266,7 @@ export default function Navbar() {
               )}
             </button>
 
-            {/* Customer Auth Button */}
+            {/* Dual Role Auth Button / Dropdown */}
             {mounted && currentUser ? (
               <div className="relative group">
                 <Link
@@ -311,14 +277,89 @@ export default function Navbar() {
                   <span className="max-w-[100px] truncate">{currentUser.name.split(" ")[0]}</span>
                 </Link>
               </div>
-            ) : (
+            ) : mounted && adminUser ? (
               <Link
-                href="/auth/login"
-                className="flex items-center gap-1.5 rounded-full border border-stone-800 bg-stone-900 px-3.5 py-1.5 text-xs font-semibold text-white shadow hover:bg-stone-800 transition"
+                href="/admin"
+                className="flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-gradient-to-r from-amber-600 to-amber-700 px-3.5 py-1.5 text-xs font-semibold text-white shadow-md hover:brightness-110 transition"
               >
-                <User className="h-3.5 w-3.5 text-amber-300" />
-                <span className="hidden sm:inline">Sign In</span>
+                <ShieldAlert className="h-3.5 w-3.5 text-amber-200" />
+                <span className="hidden sm:inline">Admin Console</span>
               </Link>
+            ) : (
+              <div 
+                className="relative"
+                onMouseEnter={() => setAuthDropdownOpen(true)}
+                onMouseLeave={() => setAuthDropdownOpen(false)}
+              >
+                <Link
+                  href="/login"
+                  onClick={() => setAuthDropdownOpen(false)}
+                  className="flex items-center gap-1.5 rounded-full border border-stone-800 bg-stone-900 px-3.5 py-1.5 text-xs font-semibold text-white shadow hover:bg-stone-800 transition"
+                >
+                  <User className="h-3.5 w-3.5 text-amber-300" />
+                  <span className="hidden sm:inline">Sign In</span>
+                  <ChevronDown className="h-3 w-3 opacity-60 ml-0.5" />
+                </Link>
+
+                {authDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-1.5 w-72 rounded-2xl border border-amber-900/15 bg-white p-3 shadow-2xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-800 border-b border-amber-100 flex items-center justify-between">
+                      <span>Choose Sign In Portal</span>
+                      <Sparkles className="h-3 w-3 text-amber-600" />
+                    </div>
+
+                    <div className="mt-2 space-y-1.5 text-xs">
+                      {/* Customer Option */}
+                      <Link
+                        href="/auth/login"
+                        onClick={() => setAuthDropdownOpen(false)}
+                        className="flex items-start gap-3 rounded-xl p-2.5 hover:bg-amber-50/80 transition group text-left border border-transparent hover:border-amber-200"
+                      >
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-900 group-hover:bg-amber-700 group-hover:text-white transition">
+                          <ShoppingBag className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-stone-900 group-hover:text-amber-900">
+                            Customer Sign In
+                          </p>
+                          <p className="text-[11px] text-stone-500 leading-tight">
+                            Orders, 3D drape & custom sizing
+                          </p>
+                        </div>
+                      </Link>
+
+                      {/* Admin Option */}
+                      <Link
+                        href="/admin/login"
+                        onClick={() => setAuthDropdownOpen(false)}
+                        className="flex items-start gap-3 rounded-xl p-2.5 hover:bg-stone-900 hover:text-white transition group text-left border border-transparent hover:border-amber-500/30"
+                      >
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#1a1420] text-amber-400 group-hover:bg-amber-500 group-hover:text-stone-950 transition">
+                          <ShieldAlert className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-stone-900 group-hover:text-amber-300">
+                            Administrator Portal
+                          </p>
+                          <p className="text-[11px] text-stone-500 group-hover:text-stone-400 leading-tight">
+                            Manage inventory, catalog & pricing
+                          </p>
+                        </div>
+                      </Link>
+                    </div>
+
+                    <div className="mt-2 border-t border-stone-100 pt-2 text-center">
+                      <Link
+                        href="/auth/register"
+                        onClick={() => setAuthDropdownOpen(false)}
+                        className="text-[11px] font-semibold text-amber-800 hover:underline"
+                      >
+                        New customer? Create an Account &rarr;
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

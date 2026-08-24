@@ -166,6 +166,26 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (e) {
       console.warn("Local storage parse error:", e);
     }
+
+    // Live Sync with Supabase Database
+    fetch("/api/products")
+      .then(res => res.json())
+      .then(result => {
+        if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+          setProducts(result.data);
+        }
+      })
+      .catch(err => console.warn("Supabase products sync note:", err));
+
+    fetch("/api/orders")
+      .then(res => res.json())
+      .then(result => {
+        if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+          setOrders(result.data);
+        }
+      })
+      .catch(err => console.warn("Supabase orders sync note:", err));
+
     setMounted(true);
   }, []);
 
@@ -329,6 +349,14 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     setCurrentUser(user);
     showToast(`Welcome to Geethvarnam, ${user.name}!`);
+
+    // Sync profile to Supabase
+    fetch("/api/profiles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(user)
+    }).catch(e => console.warn("Supabase profile sync error:", e));
+
     return user;
   };
 
@@ -343,6 +371,14 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     setAdminUser(admin);
     showToast(`Welcome to Executive Management Console, ${admin.name}!`);
+
+    // Sync profile to Supabase
+    fetch("/api/profiles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(admin)
+    }).catch(e => console.warn("Supabase profile sync error:", e));
+
     return admin;
   };
 
@@ -356,7 +392,7 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     showToast("Logged out of Admin Portal.");
   };
 
-  // Product CRUD
+  // Product CRUD with Supabase Persistence
   const addProduct = (newProd: Omit<Product, "id" | "reviews_count" | "rating">): Product => {
     const id = `${newProd.category}-${Date.now().toString(36)}`;
     const product: Product = {
@@ -367,17 +403,37 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     setProducts(prev => [product, ...prev]);
     showToast(`Added "${product.name}" to inventory.`);
+
+    // Persist to Supabase database
+    fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(product)
+    }).catch(e => console.warn("Supabase product persist error:", e));
+
     return product;
   };
 
   const updateProduct = (id: string, updatedFields: Partial<Product>) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p));
     showToast("Product updated successfully.");
+
+    // Persist to Supabase database
+    fetch("/api/products", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, updates: updatedFields })
+    }).catch(e => console.warn("Supabase product update error:", e));
   };
 
   const deleteProduct = (id: string) => {
     setProducts(prev => prev.filter(p => p.id !== id));
     showToast("Product removed from inventory.");
+
+    // Persist delete to Supabase database
+    fetch(`/api/products?id=${encodeURIComponent(id)}`, {
+      method: "DELETE"
+    }).catch(e => console.warn("Supabase product delete error:", e));
   };
 
   const getProductBySlug = (slug: string) => products.find(p => p.slug === slug || p.id === slug);
@@ -498,12 +554,27 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     setOrders(prev => [newOrder, ...prev]);
     clearCart();
+
+    // Persist order to Supabase
+    fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newOrder)
+    }).catch(e => console.warn("Supabase order persist error:", e));
+
     return newOrder;
   };
 
   const updateOrderStatus = (orderId: string, status: Order["status"]) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
     showToast(`Order status updated to ${status.toUpperCase()}`);
+
+    // Persist status update to Supabase
+    fetch("/api/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId, status })
+    }).catch(e => console.warn("Supabase order status update error:", e));
   };
 
   // Derived calculations

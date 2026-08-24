@@ -101,6 +101,22 @@ export default function CustomerLoginPage() {
           />
         ) : (
           <div>
+            {/* Dual-Role Portal Switcher Tabs */}
+            <div className="mb-6 flex rounded-2xl bg-white/5 p-1 border border-amber-500/20">
+              <Link
+                href="/auth/login"
+                className="flex-1 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 py-2 text-center text-xs font-bold text-stone-950 shadow-md"
+              >
+                🛍️ Customer Sign In
+              </Link>
+              <Link
+                href="/admin/login"
+                className="flex-1 rounded-xl py-2 text-center text-xs font-bold text-stone-400 hover:text-white hover:bg-white/5 transition"
+              >
+                👑 Admin Portal
+              </Link>
+            </div>
+
             {/* Brand Header */}
             <div className="text-center">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-amber-300">

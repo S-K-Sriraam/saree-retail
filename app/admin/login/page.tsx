@@ -100,6 +100,22 @@ export default function AdminLoginPage() {
           />
         ) : (
           <div>
+            {/* Dual-Role Portal Switcher Tabs */}
+            <div className="mb-6 flex rounded-2xl bg-white/5 p-1 border border-amber-500/20">
+              <Link
+                href="/auth/login"
+                className="flex-1 rounded-xl py-2 text-center text-xs font-bold text-stone-400 hover:text-white hover:bg-white/5 transition"
+              >
+                🛍️ Customer Sign In
+              </Link>
+              <Link
+                href="/admin/login"
+                className="flex-1 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 py-2 text-center text-xs font-bold text-stone-950 shadow-md"
+              >
+                👑 Admin Portal
+              </Link>
+            </div>
+
             {/* Admin Executive Header */}
             <div className="text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/20 to-amber-900/40 text-amber-300 shadow-inner">
