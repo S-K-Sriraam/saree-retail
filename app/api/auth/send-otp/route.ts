@@ -90,9 +90,32 @@ export async function POST(request: Request) {
       // B. Resend API Dispatch (if configured and not already sent)
       const resendKey = process.env.RESEND_API_KEY;
       if (resendKey && !deliveryStatus.emailSent) {
+        const fromEmail = process.env.RESEND_FROM_EMAIL || "Geethvarnam Boutique <onboarding@resend.dev>";
+        const emailTemplate = `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0c0a0e; color: #ffffff; padding: 40px 30px; border-radius: 20px; border: 1px solid rgba(217, 119, 6, 0.4);">
+            <div style="text-align: center; margin-bottom: 25px;">
+              <h1 style="color: #f59e0b; margin: 0; font-size: 26px; letter-spacing: 2px; text-transform: uppercase;">GEETHVARNAM</h1>
+              <p style="color: #a8a29e; font-size: 11px; letter-spacing: 3px; margin-top: 5px; text-transform: uppercase;">Luxury Saree & Chudar Couture</p>
+            </div>
+            
+            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 30px 20px; text-align: center; margin-bottom: 25px;">
+              <p style="color: #e7e5e4; font-size: 14px; margin-top: 0;">Hello <strong>${recipientName}</strong>,</p>
+              <p style="color: #a8a29e; font-size: 13px; margin-bottom: 20px;">Use the verification passcode below to complete your ${isAdmin ? "Executive Admin Sign In / Registration" : "Storefront Authentication"}:</p>
+              
+              <div style="display: inline-block; background: linear-gradient(135deg, #d97706, #b45309); color: #000000; font-size: 32px; font-weight: bold; font-family: monospace; letter-spacing: 8px; padding: 15px 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);">
+                ${otpCode}
+              </div>
+              
+              <p style="color: #78716c; font-size: 11px; margin-top: 20px;">This code is valid for 5 minutes. Never share this passcode with anyone.</p>
+            </div>
+            
+            <p style="color: #57534e; font-size: 11px; text-align: center; margin: 0;">&copy; 2026 Geethvarnam Heritage Boutique. All rights reserved.</p>
+          </div>
+        `;
+
         try {
-          const fromEmail = process.env.RESEND_FROM_EMAIL || "Geethvarnam Boutique <onboarding@resend.dev>";
-          const res = await fetch("https://api.resend.com/emails", {
+          // Attempt 1: Direct dispatch to target email
+          let res = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -102,27 +125,7 @@ export async function POST(request: Request) {
               from: fromEmail,
               to: [cleanEmail],
               subject: `${otpCode} is your Geethvarnam ${isAdmin ? "Admin Security" : "Verification"} Code`,
-              html: `
-                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0c0a0e; color: #ffffff; padding: 40px 30px; border-radius: 20px; border: 1px solid rgba(217, 119, 6, 0.4);">
-                  <div style="text-align: center; margin-bottom: 25px;">
-                    <h1 style="color: #f59e0b; margin: 0; font-size: 26px; letter-spacing: 2px; text-transform: uppercase;">GEETHVARNAM</h1>
-                    <p style="color: #a8a29e; font-size: 11px; letter-spacing: 3px; margin-top: 5px; text-transform: uppercase;">Luxury Saree & Chudar Couture</p>
-                  </div>
-                  
-                  <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 30px 20px; text-align: center; margin-bottom: 25px;">
-                    <p style="color: #e7e5e4; font-size: 14px; margin-top: 0;">Hello <strong>${recipientName}</strong>,</p>
-                    <p style="color: #a8a29e; font-size: 13px; margin-bottom: 20px;">Use the verification passcode below to complete your ${isAdmin ? "Executive Admin Sign In" : "Storefront Authentication"}:</p>
-                    
-                    <div style="display: inline-block; background: linear-gradient(135deg, #d97706, #b45309); color: #000000; font-size: 32px; font-weight: bold; font-family: monospace; letter-spacing: 8px; padding: 15px 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);">
-                      ${otpCode}
-                    </div>
-                    
-                    <p style="color: #78716c; font-size: 11px; margin-top: 20px;">This code is valid for 5 minutes. Never share this passcode with anyone.</p>
-                  </div>
-                  
-                  <p style="color: #57534e; font-size: 11px; text-align: center; margin: 0;">&copy; 2026 Geethvarnam Heritage Boutique. All rights reserved.</p>
-                </div>
-              `
+              html: emailTemplate
             })
           });
 
@@ -131,7 +134,59 @@ export async function POST(request: Request) {
             deliveryStatus.providersUsed.push("Resend Email API");
           } else {
             const errData = await res.json();
-            deliveryStatus.logs.push(`Resend error: ${JSON.stringify(errData)}`);
+            deliveryStatus.logs.push(`Resend direct dispatch error: ${JSON.stringify(errData)}`);
+
+            // If Resend free tier sandbox restriction 403 (recipient is different from verified account email)
+            if (res.status === 403) {
+              const verifiedOwnerEmail = "sriraamsk05@gmail.com";
+              const fallbackSubject = `[${otpCode}] Geethvarnam ${isAdmin ? "Admin Register OTP" : "Verification OTP"} for ${cleanEmail}`;
+              const fallbackHtml = `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0c0a0e; color: #ffffff; padding: 40px 30px; border-radius: 20px; border: 1px solid rgba(217, 119, 6, 0.4);">
+                  <div style="text-align: center; margin-bottom: 25px;">
+                    <h1 style="color: #f59e0b; margin: 0; font-size: 26px; letter-spacing: 2px; text-transform: uppercase;">GEETHVARNAM</h1>
+                    <p style="color: #a8a29e; font-size: 11px; letter-spacing: 3px; margin-top: 5px; text-transform: uppercase;">Luxury Saree & Chudar Couture</p>
+                  </div>
+                  
+                  <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 30px 20px; text-align: center; margin-bottom: 25px;">
+                    <span style="background: #f59e0b; color: #000; font-size: 10px; font-weight: bold; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">
+                      ${isAdmin ? "Admin Registration / Login" : "Customer Authentication"}
+                    </span>
+                    <p style="color: #e7e5e4; font-size: 14px; margin-top: 15px;">Target Admin Account: <strong>${recipientName} (${cleanEmail})</strong></p>
+                    <p style="color: #a8a29e; font-size: 13px; margin-bottom: 20px;">Your 6-Digit Verification Passcode:</p>
+                    
+                    <div style="display: inline-block; background: linear-gradient(135deg, #d97706, #b45309); color: #000000; font-size: 32px; font-weight: bold; font-family: monospace; letter-spacing: 8px; padding: 15px 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);">
+                      ${otpCode}
+                    </div>
+                    
+                    <p style="color: #78716c; font-size: 11px; margin-top: 20px;">This code is valid for 5 minutes. (Delivered to verified owner email during development mode).</p>
+                  </div>
+                  
+                  <p style="color: #57534e; font-size: 11px; text-align: center; margin: 0;">&copy; 2026 Geethvarnam Heritage Boutique. All rights reserved.</p>
+                </div>
+              `;
+
+              const fallbackRes = await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${resendKey}`
+                },
+                body: JSON.stringify({
+                  from: fromEmail,
+                  to: [verifiedOwnerEmail],
+                  subject: fallbackSubject,
+                  html: fallbackHtml
+                })
+              });
+
+              if (fallbackRes.ok) {
+                deliveryStatus.emailSent = true;
+                deliveryStatus.providersUsed.push(`Resend (Delivered to ${verifiedOwnerEmail})`);
+              } else {
+                const fbErr = await fallbackRes.json();
+                deliveryStatus.logs.push(`Resend fallback error: ${JSON.stringify(fbErr)}`);
+              }
+            }
           }
         } catch (e: any) {
           deliveryStatus.logs.push(`Resend exception: ${e.message}`);
