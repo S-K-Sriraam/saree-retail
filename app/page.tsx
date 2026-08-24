@@ -31,154 +31,86 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#faf7f2]">
-      {/* 1. HERO SECTION WITH 3D SILK SIMULATION & 2-COLUMN LUXURY SHOWCASE */}
-      <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden bg-[#0a0a0d] text-white py-12 lg:py-16">
+      {/* 1. HERO SECTION WITH FULL-BLEED LUXURY SILK BACKGROUND */}
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden text-white py-16 px-4">
+        {/* Full-Bleed Background Image covering 100% of screen */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=2400&q=85"
+            alt="Royal Silk Handloom Weave"
+            className="h-full w-full object-cover object-center"
+          />
+          {/* Opulent Cinematic Vignette Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0d] via-black/75 to-[#0a0a0d]/90" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-black/85" />
+        </div>
+
         {/* 3D Three.js Shimmering Silk Wave Canvas */}
-        <SilkFabricHero tintColor={heroPreviewCategory === "saree" ? "#881337" : "#065f46"} />
+        <div className="absolute inset-0 z-[1] opacity-60 pointer-events-none">
+          <SilkFabricHero tintColor="#881337" />
+        </div>
 
         {/* Hero Overlay Content */}
-        <div className="relative z-10 mx-auto max-w-7xl px-6 w-full">
-          <div className="grid items-center gap-10 lg:grid-cols-12">
-            
-            {/* LEFT COLUMN: Attractive Handloom Visual Showcase Card */}
-            <div className="lg:col-span-5 relative order-2 lg:order-1">
-              <div className="relative mx-auto max-w-md overflow-hidden rounded-3xl border border-amber-400/35 bg-gradient-to-b from-[#1e1728]/90 via-[#150f1d]/95 to-[#0e0a14]/95 p-3.5 shadow-2xl backdrop-blur-xl group">
-                
-                {/* Category Switcher Pill */}
-                <div className="flex rounded-2xl bg-black/50 p-1 border border-white/10 mb-3 backdrop-blur-md">
-                  <button
-                    onClick={() => setHeroPreviewCategory("saree")}
-                    className={`flex-1 rounded-xl py-1.5 text-center text-xs font-bold transition ${
-                      heroPreviewCategory === "saree"
-                        ? "bg-gradient-to-r from-amber-600 to-amber-500 text-stone-950 shadow-md"
-                        : "text-stone-400 hover:text-white"
-                    }`}
-                  >
-                    👑 Saree Couture
-                  </button>
-                  <button
-                    onClick={() => setHeroPreviewCategory("chudar")}
-                    className={`flex-1 rounded-xl py-1.5 text-center text-xs font-bold transition ${
-                      heroPreviewCategory === "chudar"
-                        ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md"
-                        : "text-stone-400 hover:text-white"
-                    }`}
-                  >
-                    ✨ Royal Chudar
-                  </button>
-                </div>
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-amber-300 backdrop-blur-md shadow-lg shadow-amber-500/10">
+            <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+            <span>Royal Ethnic Couture &bull; 2026 Collection</span>
+          </div>
 
-                {/* Main Showcase Image */}
-                <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl border border-amber-500/20 shadow-inner">
-                  <img
-                    src={
-                      heroPreviewCategory === "saree"
-                        ? "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1000&q=80"
-                        : "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1000&q=80"
-                    }
-                    alt="Geethvarnam Handloom Creation"
-                    className="h-full w-full object-cover transition-all duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+          {/* Luxury Serif Title */}
+          <h1 className="mt-8 text-4xl font-bold tracking-tight text-white font-serif-luxury sm:text-6xl lg:text-7xl leading-[1.15] drop-shadow-2xl">
+            The Majesty of Pure Silks <br className="hidden sm:inline" />
+            <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-transparent">
+              & Royal Chudars
+            </span>
+          </h1>
 
-                  {/* Top Floating Badge */}
-                  <div className="absolute top-3 left-3 rounded-full border border-amber-400/40 bg-black/75 px-3 py-1 text-[11px] font-bold text-amber-300 backdrop-blur-md shadow-lg flex items-center gap-1.5">
-                    <Sparkles className="h-3 w-3 text-amber-400 animate-pulse" />
-                    <span>{heroPreviewCategory === "saree" ? "Kanchipuram Silkmark" : "Zardozi Anarkali Suit"}</span>
-                  </div>
+          {/* Subtext */}
+          <p className="mx-auto mt-6 max-w-2xl text-sm text-stone-200 leading-relaxed sm:text-base drop-shadow">
+            Heirloom Kanchipuram pure zari sarees, handcrafted Banarasi brocades, and bespoke velvet Anarkali chudar sets. Curated for timeless bridal celebrations.
+          </p>
 
-                  {/* Bottom Caption Pill */}
-                  <div className="absolute bottom-3 left-3 right-3 rounded-2xl border border-white/15 bg-black/80 p-3.5 backdrop-blur-md shadow-2xl">
-                    <div className="flex items-center justify-between gap-2 text-xs">
-                      <div>
-                        <p className="font-bold text-white font-serif-luxury text-sm">
-                          {heroPreviewCategory === "saree" ? "Imperial Crimson & Gold Zari" : "Embroidered Velvet Chudar"}
-                        </p>
-                        <p className="text-[11px] text-amber-300/80 mt-0.5">
-                          {heroPreviewCategory === "saree" ? "Pure Mulberry Silk • 6.3m Drape" : "Heavy Dupatta • Custom Tailored Cut"}
-                        </p>
-                      </div>
-                      <Link
-                        href={heroPreviewCategory === "saree" ? "/products?category=saree" : "/products?category=chudar"}
-                        className="rounded-full bg-amber-500 p-2 text-stone-950 hover:bg-amber-400 transition shrink-0 shadow"
-                      >
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          {/* Action CTAs */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/products?category=saree"
+              className="flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 px-8 py-4 text-xs font-bold text-stone-950 shadow-xl shadow-amber-500/25 transition hover:scale-105 hover:brightness-110"
+            >
+              <span>Explore Saree Couture</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+
+            <Link
+              href="/products?category=chudar"
+              className="flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-8 py-4 text-xs font-bold text-white backdrop-blur-md transition hover:bg-white/20 hover:border-white/50 shadow-lg"
+            >
+              <span>Explore Chudar & Salwars</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+
+            <a
+              href="#drape-studio"
+              className="flex items-center gap-2 rounded-full border border-amber-400/40 bg-black/60 px-6 py-4 text-xs font-bold text-amber-300 backdrop-blur-md shadow-xl transition hover:border-amber-400 hover:bg-black/90"
+            >
+              <Sparkles className="h-4 w-4 text-amber-400 animate-pulse" />
+              <span>3D Virtual Drape Studio</span>
+            </a>
+          </div>
+
+          {/* Trust Highlights */}
+          <div className="mt-14 flex flex-wrap items-center justify-center gap-8 text-xs text-stone-300 border-t border-white/15 pt-8 max-w-3xl mx-auto backdrop-blur-sm">
+            <div className="flex items-center gap-2">
+              <Award className="h-4 w-4 text-amber-400" />
+              <span>Silk Mark Certified Handlooms</span>
             </div>
-
-            {/* RIGHT COLUMN: Royal Typography, Story & Actions */}
-            <div className="lg:col-span-7 text-left order-1 lg:order-2">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-amber-300 backdrop-blur-md">
-                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                <span>Royal Ethnic Couture &bull; 2026 Collection</span>
-              </div>
-
-              {/* Luxury Serif Title */}
-              <h1 className="mt-6 text-3xl font-bold tracking-tight text-white font-serif-luxury sm:text-5xl lg:text-6xl leading-[1.15]">
-                The Majesty of Pure Silks & Royal Chudars
-              </h1>
-
-              {/* Subtext */}
-              <p className="mt-5 text-sm text-stone-300 leading-relaxed sm:text-base max-w-xl">
-                Heirloom Kanchipuram pure zari sarees, handcrafted Banarasi brocades, and bespoke velvet Anarkali chudar sets. Curated for timeless bridal celebrations.
-              </p>
-
-              {/* Action CTAs */}
-              <div className="mt-8 flex flex-wrap items-center gap-3.5">
-                <Link
-                  href="/products?category=saree"
-                  className="flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 px-7 py-3.5 text-xs font-bold text-stone-950 shadow-xl shadow-amber-500/20 transition hover:scale-105 hover:brightness-110"
-                >
-                  <span>Explore Saree Couture</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-
-                <Link
-                  href="/products?category=chudar"
-                  className="flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-7 py-3.5 text-xs font-bold text-white backdrop-blur-md transition hover:bg-white/20 hover:border-white/50"
-                >
-                  <span>Explore Chudar & Salwars</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-
-                <a
-                  href="#drape-studio"
-                  className="flex items-center gap-2 rounded-full border border-amber-400/40 bg-[#16141a]/90 px-5 py-3.5 text-xs font-bold text-amber-300 shadow-xl transition hover:border-amber-400 hover:bg-black"
-                >
-                  <Sparkles className="h-4 w-4 text-amber-400 animate-pulse" />
-                  <span>3D Virtual Drape</span>
-                </a>
-              </div>
-
-              {/* Trust Highlights */}
-              <div className="mt-10 grid grid-cols-3 gap-4 border-t border-white/10 pt-6 text-xs text-stone-400 max-w-lg">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 text-amber-300 font-bold">
-                    <Award className="h-4 w-4 shrink-0 text-amber-400" />
-                    <span>Silkmark</span>
-                  </div>
-                  <span className="text-[11px] text-stone-400">100% Pure Silks</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 text-amber-300 font-bold">
-                    <Sparkles className="h-4 w-4 shrink-0 text-amber-400" />
-                    <span>Custom Fits</span>
-                  </div>
-                  <span className="text-[11px] text-stone-400">Artisan Tailoring</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 text-amber-300 font-bold">
-                    <ShieldCheck className="h-4 w-4 shrink-0 text-amber-400" />
-                    <span>Insured</span>
-                  </div>
-                  <span className="text-[11px] text-stone-400">Global Shipping</span>
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-amber-400" />
+              <span>Custom Tailored Sizing & Blouses</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-amber-400" />
+              <span>Insured Worldwide Express Shipping</span>
             </div>
           </div>
         </div>
