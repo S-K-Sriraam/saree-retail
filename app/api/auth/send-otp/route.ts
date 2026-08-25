@@ -33,7 +33,8 @@ export async function POST(request: Request) {
 
       // A. Gmail / SMTP Transport via Nodemailer (Fastest & most direct)
       const gmailUser = process.env.GMAIL_USER || process.env.SMTP_USER;
-      const gmailPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS;
+      const rawPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || "";
+      const gmailPass = rawPass.replace(/\s/g, "");
       const smtpHost = process.env.SMTP_HOST;
 
       if (gmailUser && gmailPass) {
