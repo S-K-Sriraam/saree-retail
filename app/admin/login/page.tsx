@@ -128,7 +128,7 @@ export default function AdminLoginPage() {
                 Admin Sign In
               </h1>
               <p className="mt-1 text-xs text-stone-400">
-                Enter your admin email and mobile number to receive your secure multi-channel OTP passcode.
+                Enter your administrative email to receive your secure 6-digit email OTP passcode.
               </p>
             </div>
 
@@ -161,7 +161,7 @@ export default function AdminLoginPage() {
 
               <div>
                 <label className="block text-xs font-medium text-stone-300">
-                  Admin Mobile Number (for SMS Passcode)
+                  Admin Contact Mobile Number (Optional)
                 </label>
                 <div className="relative mt-1.5">
                   <Smartphone className="absolute top-3 left-3 h-4 w-4 text-stone-500" />
@@ -202,11 +202,11 @@ export default function AdminLoginPage() {
               >
                 {isSending ? (
                   <span className="flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 animate-spin" /> Dispatching Passcode to Email & Mobile...
+                    <Sparkles className="h-4 w-4 animate-spin" /> Dispatching Passcode to Email...
                   </span>
                 ) : (
                   <>
-                    <span>Send Security OTP Passcode</span>
+                    <span>Send Email OTP Passcode</span>
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}

@@ -114,7 +114,7 @@ export default function AdminRegisterPage() {
                 Register Admin Profile
               </h1>
               <p className="mt-1 text-xs text-stone-400">
-                Sign up with your personal admin email & mobile. You will receive an OTP code to verify authorization.
+                Sign up with your personal admin email. You will receive an email OTP code to verify authorization.
               </p>
             </div>
 
@@ -158,7 +158,7 @@ export default function AdminRegisterPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-stone-300">Admin Mobile (for SMS Passcode)</label>
+                <label className="block text-xs font-medium text-stone-300">Admin Contact Mobile (Optional)</label>
                 <div className="relative mt-1.5">
                   <Smartphone className="absolute top-3 left-3 h-4 w-4 text-stone-500" />
                   <input
@@ -198,11 +198,11 @@ export default function AdminRegisterPage() {
               >
                 {isSending ? (
                   <span className="flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 animate-spin" /> Dispatching Registration Passcode...
+                    <Sparkles className="h-4 w-4 animate-spin" /> Dispatching Passcode to Email...
                   </span>
                 ) : (
                   <>
-                    <span>Send Registration OTP Code</span>
+                    <span>Send Email OTP Passcode</span>
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}

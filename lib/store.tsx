@@ -285,8 +285,7 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
 
     setActiveOtpSession(session);
-    const targetText = cleanPhone ? `${cleanEmail} & ${cleanPhone}` : cleanEmail;
-    showToast(`✨ Security Passcode Dispatched to ${targetText}. Please check your email and mobile messages.`);
+    showToast(`✨ Security Passcode Dispatched to ${cleanEmail}. Please check your email inbox.`);
     return { success: true, otp: code };
   };
 
@@ -338,11 +337,12 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Direct login methods
   const loginCustomerDirect = (email: string, name?: string, phone?: string, preferences?: string[]): UserProfile => {
+    const cleanEmail = email.toLowerCase().trim();
     const user: UserProfile = {
       id: "cust-" + Math.random().toString(36).substring(2, 9),
-      name: name || email.split("@")[0].replace(".", " ").replace(/\b\w/g, l => l.toUpperCase()),
-      email: email.toLowerCase(),
-      phone: phone || "+91 98450 12345",
+      name: name || cleanEmail.split("@")[0].replace(".", " ").replace(/\b\w/g, l => l.toUpperCase()),
+      email: cleanEmail,
+      phone: phone || "",
       role: "customer",
       preferences: preferences || ["Saree Couture", "Kanchipuram Silk"],
       joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" })
@@ -350,7 +350,7 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCurrentUser(user);
     showToast(`Welcome to Geethvarnam, ${user.name}!`);
 
-    // Sync profile to Supabase
+    // Persist and Sync customer profile (with mobile number) to Supabase
     fetch("/api/profiles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

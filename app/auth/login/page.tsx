@@ -126,7 +126,7 @@ export default function CustomerLoginPage() {
                 Customer Sign In
               </h1>
               <p className="mt-1.5 text-xs text-stone-400">
-                Sign in to access your orders, live tracking & VIP privileges. A passcode will be dispatched to your email & phone.
+                Sign in to access your orders, live tracking & VIP privileges. A security passcode will be sent to your registered email.
               </p>
             </div>
 
@@ -159,7 +159,7 @@ export default function CustomerLoginPage() {
 
               <div>
                 <label className="block text-xs font-medium text-stone-300">
-                  Mobile Number (Optional - for SMS OTP)
+                  Contact Mobile Number (Optional)
                 </label>
                 <div className="relative mt-1.5">
                   <Smartphone className="absolute top-3 left-3 h-4 w-4 text-stone-500" />
@@ -200,11 +200,11 @@ export default function CustomerLoginPage() {
               >
                 {isSending ? (
                   <span className="flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 animate-spin" /> Dispatching Passcode to Email & Mobile...
+                    <Sparkles className="h-4 w-4 animate-spin" /> Dispatching Passcode to Email...
                   </span>
                 ) : (
                   <>
-                    <span>Send Security OTP Passcode</span>
+                    <span>Send Email OTP Passcode</span>
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}

@@ -135,7 +135,7 @@ export default function CustomerRegisterPage() {
                 Create Customer Account
               </h1>
               <p className="mt-1 text-xs text-stone-400">
-                Sign up to unlock handloom drops, bespoke sizing & receive your multi-channel passcode.
+                Sign up to unlock handloom drops, bespoke sizing & receive your email verification code.
               </p>
             </div>
 
@@ -164,7 +164,7 @@ export default function CustomerRegisterPage() {
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-medium text-stone-300">Email Address (for OTP) *</label>
+                  <label className="block text-xs font-medium text-stone-300">Email Address (for OTP Passcode) *</label>
                   <div className="relative mt-1.5">
                     <Mail className="absolute top-3 left-3 h-4 w-4 text-stone-500" />
                     <input
@@ -180,7 +180,7 @@ export default function CustomerRegisterPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-stone-300">Mobile (for SMS OTP) *</label>
+                  <label className="block text-xs font-medium text-stone-300">Mobile (for Order & Contact Updates) *</label>
                   <div className="relative mt-1.5">
                     <Smartphone className="absolute top-3 left-3 h-4 w-4 text-stone-500" />
                     <input
@@ -248,11 +248,11 @@ export default function CustomerRegisterPage() {
               >
                 {isSending ? (
                   <span className="flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 animate-spin" /> Dispatching Registration Passcode...
+                    <Sparkles className="h-4 w-4 animate-spin" /> Dispatching Passcode to Email...
                   </span>
                 ) : (
                   <>
-                    <span>Send Registration OTP Code</span>
+                    <span>Send Email Verification Passcode</span>
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}

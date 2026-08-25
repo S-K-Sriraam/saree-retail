@@ -10,16 +10,50 @@ const HEADERS = {
   Prefer: "resolution=merge-duplicates,return=representation"
 };
 
+// GET /api/profiles?email=... - Fetch profile by email
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get("email");
+
+    if (!email) {
+      return NextResponse.json({ success: false, error: "Email query param required" }, { status: 400 });
+    }
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(email.trim().toLowerCase())}&select=*`,
+      {
+        headers: HEADERS,
+        cache: "no-store"
+      }
+    );
+
+    if (!res.ok) {
+      const err = await res.text();
+      return NextResponse.json({ success: false, error: err });
+    }
+
+    const data = await res.json();
+    return NextResponse.json({ success: true, profile: data?.[0] || null });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
 // POST /api/profiles - Upsert user/admin profile into Supabase
 export async function POST(request: Request) {
   try {
     const profile = await request.json();
 
+    if (!profile.email) {
+      return NextResponse.json({ success: false, error: "Email is required" }, { status: 400 });
+    }
+
     const row = {
-      id: profile.id,
-      email: profile.email?.toLowerCase(),
-      name: profile.name,
-      phone: profile.phone || null,
+      id: profile.id || `cust-${Date.now().toString(36)}`,
+      email: profile.email.trim().toLowerCase(),
+      name: profile.name || profile.email.split("@")[0],
+      phone: profile.phone?.trim() || null,
       role: profile.role || "customer",
       preferences: profile.preferences || [],
       joined_date: profile.joinedDate || new Date().toISOString(),
@@ -38,7 +72,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: err });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, profile: row });
   } catch (error: any) {
     console.error("Error in POST /api/profiles:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

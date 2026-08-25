@@ -26,12 +26,12 @@ export async function POST(request: Request) {
     };
 
     // ==========================================
-    // 1. REAL EMAIL OTP DELIVERY
+    // REAL EMAIL OTP DELIVERY (Nodemailer SMTP / Resend)
     // ==========================================
     if (email) {
       const cleanEmail = email.trim().toLowerCase();
 
-      // A. Gmail / SMTP Transport via Nodemailer
+      // A. Gmail / SMTP Transport via Nodemailer (Fastest & most direct)
       const gmailUser = process.env.GMAIL_USER || process.env.SMTP_USER;
       const gmailPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS;
       const smtpHost = process.env.SMTP_HOST;
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
                 
                 <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 30px 20px; text-align: center; margin-bottom: 25px;">
                   <p style="color: #e7e5e4; font-size: 14px; margin-top: 0;">Hello <strong>${recipientName}</strong>,</p>
-                  <p style="color: #a8a29e; font-size: 13px; margin-bottom: 20px;">Use the verification passcode below to complete your ${isAdmin ? "Executive Admin Sign In" : "Storefront Authentication"}:</p>
+                  <p style="color: #a8a29e; font-size: 13px; margin-bottom: 20px;">Use the verification passcode below to complete your ${isAdmin ? "Executive Admin Sign In" : "Customer Authentication"}:</p>
                   
                   <div style="display: inline-block; background: linear-gradient(135deg, #d97706, #b45309); color: #000000; font-size: 32px; font-weight: bold; font-family: monospace; letter-spacing: 8px; padding: 15px 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);">
                     ${otpCode}
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
         }
       }
 
-      // B. Resend API Dispatch (if configured and not already sent)
+      // B. Resend API Dispatch (Fallback if configured)
       const resendKey = process.env.RESEND_API_KEY;
       if (resendKey && !deliveryStatus.emailSent) {
         const fromEmail = process.env.RESEND_FROM_EMAIL || "Geethvarnam Boutique <onboarding@resend.dev>";
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
             
             <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 30px 20px; text-align: center; margin-bottom: 25px;">
               <p style="color: #e7e5e4; font-size: 14px; margin-top: 0;">Hello <strong>${recipientName}</strong>,</p>
-              <p style="color: #a8a29e; font-size: 13px; margin-bottom: 20px;">Use the verification passcode below to complete your ${isAdmin ? "Executive Admin Sign In / Registration" : "Storefront Authentication"}:</p>
+              <p style="color: #a8a29e; font-size: 13px; margin-bottom: 20px;">Use the verification passcode below to complete your ${isAdmin ? "Executive Admin Sign In / Registration" : "Customer Authentication"}:</p>
               
               <div style="display: inline-block; background: linear-gradient(135deg, #d97706, #b45309); color: #000000; font-size: 32px; font-weight: bold; font-family: monospace; letter-spacing: 8px; padding: 15px 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);">
                 ${otpCode}
@@ -114,7 +114,6 @@ export async function POST(request: Request) {
         `;
 
         try {
-          // Attempt 1: Direct dispatch to target email
           let res = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
@@ -136,34 +135,10 @@ export async function POST(request: Request) {
             const errData = await res.json();
             deliveryStatus.logs.push(`Resend direct dispatch error: ${JSON.stringify(errData)}`);
 
-            // If Resend free tier sandbox restriction 403 (recipient is different from verified account email)
+            // If Resend free sandbox restriction 403 (send to verified owner email)
             if (res.status === 403) {
               const verifiedOwnerEmail = "sriraamsk05@gmail.com";
-              const fallbackSubject = `[${otpCode}] Geethvarnam ${isAdmin ? "Admin Register OTP" : "Verification OTP"} for ${cleanEmail}`;
-              const fallbackHtml = `
-                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0c0a0e; color: #ffffff; padding: 40px 30px; border-radius: 20px; border: 1px solid rgba(217, 119, 6, 0.4);">
-                  <div style="text-align: center; margin-bottom: 25px;">
-                    <h1 style="color: #f59e0b; margin: 0; font-size: 26px; letter-spacing: 2px; text-transform: uppercase;">GEETHVARNAM</h1>
-                    <p style="color: #a8a29e; font-size: 11px; letter-spacing: 3px; margin-top: 5px; text-transform: uppercase;">Luxury Saree & Chudar Couture</p>
-                  </div>
-                  
-                  <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 30px 20px; text-align: center; margin-bottom: 25px;">
-                    <span style="background: #f59e0b; color: #000; font-size: 10px; font-weight: bold; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">
-                      ${isAdmin ? "Admin Registration / Login" : "Customer Authentication"}
-                    </span>
-                    <p style="color: #e7e5e4; font-size: 14px; margin-top: 15px;">Target Admin Account: <strong>${recipientName} (${cleanEmail})</strong></p>
-                    <p style="color: #a8a29e; font-size: 13px; margin-bottom: 20px;">Your 6-Digit Verification Passcode:</p>
-                    
-                    <div style="display: inline-block; background: linear-gradient(135deg, #d97706, #b45309); color: #000000; font-size: 32px; font-weight: bold; font-family: monospace; letter-spacing: 8px; padding: 15px 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);">
-                      ${otpCode}
-                    </div>
-                    
-                    <p style="color: #78716c; font-size: 11px; margin-top: 20px;">This code is valid for 5 minutes. (Delivered to verified owner email during development mode).</p>
-                  </div>
-                  
-                  <p style="color: #57534e; font-size: 11px; text-align: center; margin: 0;">&copy; 2026 Geethvarnam Heritage Boutique. All rights reserved.</p>
-                </div>
-              `;
+              const fallbackSubject = `[${otpCode}] Geethvarnam ${isAdmin ? "Admin OTP" : "Verification OTP"} for ${cleanEmail}`;
 
               const fallbackRes = await fetch("https://api.resend.com/emails", {
                 method: "POST",
@@ -175,16 +150,13 @@ export async function POST(request: Request) {
                   from: fromEmail,
                   to: [verifiedOwnerEmail],
                   subject: fallbackSubject,
-                  html: fallbackHtml
+                  html: emailTemplate
                 })
               });
 
               if (fallbackRes.ok) {
                 deliveryStatus.emailSent = true;
-                deliveryStatus.providersUsed.push(`Resend (Delivered to ${verifiedOwnerEmail})`);
-              } else {
-                const fbErr = await fallbackRes.json();
-                deliveryStatus.logs.push(`Resend fallback error: ${JSON.stringify(fbErr)}`);
+                deliveryStatus.providersUsed.push(`Resend (Sandbox fallback to ${verifiedOwnerEmail})`);
               }
             }
           }
@@ -194,90 +166,12 @@ export async function POST(request: Request) {
       }
     }
 
-    // ==========================================
-    // 2. REAL MOBILE SMS OTP DELIVERY
-    // ==========================================
-    if (phone) {
-      const cleanPhone = phone.replace(/[^\d+]/g, "");
-
-      // A. Fast2SMS (Indian SMS Gateway - Fast & Direct)
-      const fast2smsKey = process.env.FAST2SMS_API_KEY;
-      if (fast2smsKey) {
-        try {
-          const mobileOnly = cleanPhone.replace("+91", "").replace(/\D/g, "");
-          const fRes = await fetch("https://www.fast2sms.com/dev/bulkV2", {
-            method: "POST",
-            headers: {
-              authorization: fast2smsKey,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              variables_values: otpCode,
-              route: "otp",
-              numbers: mobileOnly
-            })
-          });
-
-          if (fRes.ok) {
-            deliveryStatus.smsSent = true;
-            deliveryStatus.providersUsed.push("Fast2SMS Gateway");
-          } else {
-            const err = await fRes.json();
-            deliveryStatus.logs.push(`Fast2SMS error: ${JSON.stringify(err)}`);
-          }
-        } catch (e: any) {
-          deliveryStatus.logs.push(`Fast2SMS exception: ${e.message}`);
-        }
-      }
-
-      // B. Twilio SMS Gateway
-      const twilioSid = process.env.TWILIO_ACCOUNT_SID;
-      const twilioToken = process.env.TWILIO_AUTH_TOKEN;
-      const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
-
-      if (twilioSid && twilioToken && twilioPhone && !deliveryStatus.smsSent) {
-        try {
-          const authHeader = Buffer.from(`${twilioSid}:${twilioToken}`).toString("base64");
-          const params = new URLSearchParams();
-          params.append("To", cleanPhone.startsWith("+") ? cleanPhone : `+91${cleanPhone}`);
-          params.append("From", twilioPhone);
-          params.append("Body", `Geethvarnam Boutique: Your verification code is ${otpCode}. Valid for 5 mins.`);
-
-          const twilioRes = await fetch(
-            `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Basic ${authHeader}`,
-                "Content-Type": "application/x-www-form-urlencoded"
-              },
-              body: params.toString()
-            }
-          );
-
-          if (twilioRes.ok) {
-            deliveryStatus.smsSent = true;
-            deliveryStatus.providersUsed.push("Twilio SMS");
-          } else {
-            const err = await twilioRes.json();
-            deliveryStatus.logs.push(`Twilio error: ${JSON.stringify(err)}`);
-          }
-        } catch (e: any) {
-          deliveryStatus.logs.push(`Twilio exception: ${e.message}`);
-        }
-      }
-    }
-
     // Terminal Logging for real-time observation
     console.log(`\n======================================================`);
-    console.log(`[OTP DISPATCH ENGINE] Target: ${email || ""} | ${phone || ""}`);
+    console.log(`[EMAIL OTP ENGINE] Target Email: ${email || "None"}`);
+    if (phone) console.log(`[CUSTOMER CONTACT MOBILE SAVED]: ${phone}`);
     console.log(`[PASSCODE]: >>> ${otpCode} <<<`);
-    console.log(`[DELIVERY RESULTS]: Email Sent: ${deliveryStatus.emailSent}, SMS Sent: ${deliveryStatus.smsSent}`);
-    if (deliveryStatus.providersUsed.length > 0) {
-      console.log(`[PROVIDERS SUCCEEDED]: ${deliveryStatus.providersUsed.join(", ")}`);
-    } else {
-      console.log(`[NOTICE]: No email/SMS keys configured in .env.local yet.`);
-    }
+    console.log(`[DELIVERY RESULTS]: Email Sent: ${deliveryStatus.emailSent} (${deliveryStatus.providersUsed.join(", ") || "Development fallback"})`);
     console.log(`======================================================\n`);
 
     return NextResponse.json({
@@ -286,9 +180,9 @@ export async function POST(request: Request) {
       email: email || null,
       phone: phone || null,
       deliveryStatus,
-      message: deliveryStatus.emailSent || deliveryStatus.smsSent
-        ? `Passcode sent to ${[deliveryStatus.emailSent && "Email", deliveryStatus.smsSent && "Mobile SMS"].filter(Boolean).join(" and ")}.`
-        : `Passcode generated. (Configure SMTP/Resend or Fast2SMS in .env.local for live dispatch)`
+      message: deliveryStatus.emailSent
+        ? `Passcode sent to your email (${email}).`
+        : `Email Passcode generated: ${otpCode}`
     });
   } catch (error: any) {
     console.error("OTP send error:", error);

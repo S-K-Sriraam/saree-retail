@@ -111,7 +111,7 @@ export default function OtpVerificationForm({
       </div>
 
       <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-amber-300">
-        <Lock className="h-3 w-3 text-amber-400" /> Multi-Channel Two-Factor Verification
+        <Lock className="h-3 w-3 text-amber-400" /> Secure Email Passcode Verification
       </span>
 
       <h2 className="mt-3 text-2xl font-bold text-white font-serif-luxury sm:text-3xl">
@@ -119,21 +119,21 @@ export default function OtpVerificationForm({
       </h2>
 
       <p className="mt-2 text-xs text-stone-300 max-w-sm mx-auto">
-        A 6-digit one-time verification passcode has been dispatched:
+        A 6-digit one-time verification passcode has been dispatched to your email inbox:
       </p>
 
       {/* Dispatched Channels */}
-      <div className="mt-2 flex flex-col items-center justify-center gap-1 text-xs">
+      <div className="mt-3 flex flex-col items-center justify-center gap-1.5 text-xs">
         {email && (
-          <div className="flex items-center gap-1.5 font-mono text-amber-300 font-bold">
+          <div className="flex items-center gap-1.5 font-mono text-amber-300 font-bold bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
             <Mail className="h-3.5 w-3.5 text-amber-400" />
             <span>{email}</span>
           </div>
         )}
         {phone && (
-          <div className="flex items-center gap-1.5 font-mono text-emerald-300 font-bold">
-            <Smartphone className="h-3.5 w-3.5 text-emerald-400" />
-            <span>{phone}</span>
+          <div className="flex items-center gap-1.5 text-stone-400 text-[11px]">
+            <Smartphone className="h-3 w-3 text-stone-500" />
+            <span>Contact Mobile: <strong className="text-stone-300">{phone}</strong> (Saved for order updates)</span>
           </div>
         )}
       </div>
