@@ -20,7 +20,6 @@ export default function AdminRegisterPage() {
   const [error, setError] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [activeOtpCode, setActiveOtpCode] = useState<string>("");
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +42,6 @@ export default function AdminRegisterPage() {
         password: passcode
       });
       if (res.success) {
-        setActiveOtpCode(res.otp);
         setStep("otp");
       }
     } catch (err: any) {
@@ -70,14 +68,11 @@ export default function AdminRegisterPage() {
 
   const handleResendOtp = async () => {
     setError("");
-    const res = await sendAuthOtp(email, "admin", "register", {
+    await sendAuthOtp(email, "admin", "register", {
       name,
       phone: phone || undefined,
       password: passcode
     });
-    if (res.success) {
-      setActiveOtpCode(res.otp);
-    }
   };
 
   return (
@@ -91,7 +86,6 @@ export default function AdminRegisterPage() {
             phone={phone}
             role="admin"
             actionType="register"
-            activeOtpCode={activeOtpCode}
             onVerify={handleVerifyOtp}
             onResend={handleResendOtp}
             onBack={() => {

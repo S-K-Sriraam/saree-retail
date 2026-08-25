@@ -138,34 +138,6 @@ export default function OtpVerificationForm({
         )}
       </div>
 
-      {/* Quick Passcode Auto-Fill Helper */}
-      {activeOtpCode && (
-        <div className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-950/40 p-3 text-xs text-amber-200">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-amber-300 font-mono flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>Passcode: <strong className="text-white tracking-widest text-sm bg-black/40 px-2 py-0.5 rounded border border-amber-500/30">{activeOtpCode}</strong></span>
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                const codeDigits = activeOtpCode.split("");
-                setDigits(codeDigits);
-                if (codeDigits.length === 6) {
-                  onVerify(activeOtpCode);
-                }
-              }}
-              className="rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 px-2.5 py-1 text-[11px] font-bold text-amber-300 transition"
-            >
-              Auto-Fill & Verify &rarr;
-            </button>
-          </div>
-          <p className="mt-2 text-[10px] text-stone-400 text-left border-t border-white/5 pt-1.5">
-            📬 <em>Check your Gmail <strong>Spam / Junk / Promotions</strong> tab for emails from <code>onboarding@resend.dev</code>.</em>
-          </p>
-        </div>
-      )}
-
       {errorMessage && (
         <div className="mt-4 rounded-xl border border-rose-500/40 bg-rose-950/60 p-3 text-xs text-rose-300 animate-shake">
           {errorMessage}

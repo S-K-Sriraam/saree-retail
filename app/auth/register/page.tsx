@@ -25,7 +25,6 @@ export default function CustomerRegisterPage() {
   const [error, setError] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [activeOtpCode, setActiveOtpCode] = useState<string>("");
 
   const preferencesList = [
     "Kanchipuram Silk Sarees",
@@ -66,7 +65,6 @@ export default function CustomerRegisterPage() {
         password
       });
       if (res.success) {
-        setActiveOtpCode(res.otp);
         setStep("otp");
       }
     } catch (err: any) {
@@ -93,15 +91,12 @@ export default function CustomerRegisterPage() {
 
   const handleResendOtp = async () => {
     setError("");
-    const res = await sendAuthOtp(email, "customer", "register", {
+    await sendAuthOtp(email, "customer", "register", {
       name,
       phone,
       preferences: selectedPreferences,
       password
     });
-    if (res.success) {
-      setActiveOtpCode(res.otp);
-    }
   };
 
   return (
@@ -115,7 +110,6 @@ export default function CustomerRegisterPage() {
             phone={phone}
             role="customer"
             actionType="register"
-            activeOtpCode={activeOtpCode}
             onVerify={handleVerifyOtp}
             onResend={handleResendOtp}
             onBack={() => {

@@ -19,7 +19,6 @@ export default function CustomerLoginPage() {
   const [error, setError] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [activeOtpCode, setActiveOtpCode] = useState<string>("");
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +40,6 @@ export default function CustomerLoginPage() {
         password
       });
       if (res.success) {
-        setActiveOtpCode(res.otp);
         setStep("otp");
       }
     } catch (err: any) {
@@ -68,13 +66,10 @@ export default function CustomerLoginPage() {
 
   const handleResendOtp = async () => {
     setError("");
-    const res = await sendAuthOtp(email, "customer", "login", {
+    await sendAuthOtp(email, "customer", "login", {
       phone: phone || undefined,
       password
     });
-    if (res.success) {
-      setActiveOtpCode(res.otp);
-    }
   };
 
   return (
@@ -89,7 +84,6 @@ export default function CustomerLoginPage() {
             phone={phone}
             role="customer"
             actionType="login"
-            activeOtpCode={activeOtpCode}
             onVerify={handleVerifyOtp}
             onResend={handleResendOtp}
             onBack={() => {
