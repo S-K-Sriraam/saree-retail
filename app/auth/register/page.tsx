@@ -66,6 +66,8 @@ export default function CustomerRegisterPage() {
       });
       if (res.success) {
         setStep("otp");
+      } else if (res.error) {
+        setError(res.error);
       }
     } catch (err: any) {
       setError(err.message || "Failed to dispatch registration OTP.");

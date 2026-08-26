@@ -42,7 +42,7 @@ interface BoutiqueContextType {
     role: "customer" | "admin",
     action: "login" | "register",
     payload?: OtpSession["payload"]
-  ) => Promise<{ success: boolean; otp: string }>;
+  ) => Promise<{ success: boolean; otp?: string; error?: string; userExists?: boolean }>;
   verifyAuthOtp: (
     email: string,
     enteredOtp: string
@@ -247,7 +247,7 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     role: "customer" | "admin",
     action: "login" | "register",
     payload?: OtpSession["payload"]
-  ): Promise<{ success: boolean; otp: string }> => {
+  ): Promise<{ success: boolean; otp?: string; error?: string; userExists?: boolean }> => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = payload?.phone?.trim();
 
@@ -267,6 +267,16 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         })
       });
       const data = await res.json();
+
+      // Surface API errors (e.g. user already exists on register)
+      if (!res.ok || !data.success) {
+        return {
+          success: false,
+          error: data.error || "Failed to dispatch verification code.",
+          userExists: data.userExists || false,
+        };
+      }
+
       if (data.otp) {
         code = data.otp;
       }

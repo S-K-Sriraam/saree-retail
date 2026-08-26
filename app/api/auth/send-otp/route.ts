@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://egcqtoibavhjvcdyzosw.supabase.co";
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_leYxEdE8HaiBwLtTo5DT6Q_P58v7ly2";
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -11,6 +14,35 @@ export async function POST(request: Request) {
         { success: false, error: "Please provide an email address or mobile number." },
         { status: 400 }
       );
+    }
+
+    // ── DUPLICATE EMAIL CHECK on Registration ─────────────────────────────────
+    if (action === "register" && email) {
+      const cleanEmail = email.trim().toLowerCase();
+      try {
+        const checkRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(cleanEmail)}&select=id`,
+          {
+            headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+            cache: "no-store",
+          }
+        );
+        if (checkRes.ok) {
+          const existing = await checkRes.json();
+          if (existing && existing.length > 0) {
+            return NextResponse.json(
+              {
+                success: false,
+                error: "User already exists! An account with this email is already registered. Please sign in instead.",
+                userExists: true,
+              },
+              { status: 409 }
+            );
+          }
+        }
+      } catch (dbErr) {
+        console.warn("Duplicate check warning:", dbErr);
+      }
     }
 
     // Generate secure 6-digit numeric OTP code
