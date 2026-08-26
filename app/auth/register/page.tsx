@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Sparkles, User, Mail, Smartphone, Lock, ArrowRight, ShieldCheck, Check } from "lucide-react";
+import { Sparkles, User, Mail, Smartphone, Lock, ArrowRight, ShieldCheck, Check, Eye, EyeOff } from "lucide-react";
 import { useBoutique } from "@/lib/store";
 import LuxuryMandalaParticles from "@/components/three/LuxuryMandalaParticles";
 import OtpVerificationForm from "@/components/ui/OtpVerificationForm";
@@ -25,6 +25,7 @@ export default function CustomerRegisterPage() {
   const [error, setError] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const preferencesList = [
     "Kanchipuram Silk Sarees",
@@ -198,13 +199,21 @@ export default function CustomerRegisterPage() {
                   <Lock className="absolute top-3 left-3 h-4 w-4 text-stone-500" />
                   <input
                     suppressHydrationWarning
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create your secure account password"
                     required
-                    className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pr-4 pl-9 text-xs text-white placeholder-stone-600 outline-none transition focus:border-amber-400"
+                    className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pr-10 pl-9 text-xs text-white placeholder-stone-600 outline-none transition focus:border-amber-400"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute top-2.5 right-3 text-stone-500 hover:text-amber-300 transition"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
 

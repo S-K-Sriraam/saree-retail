@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { 
   Plus, 
@@ -13,7 +13,9 @@ import {
   Sparkles, 
   Layers, 
   ArrowUpDown,
-  Filter
+  Filter,
+  Upload,
+  ImageIcon
 } from "lucide-react";
 import { useBoutique } from "@/lib/store";
 import { Product } from "@/lib/mock-data";
@@ -37,9 +39,23 @@ export default function AdminProductsPage() {
   const [formColorCode, setFormColorCode] = useState("#881337");
   const [formSku, setFormSku] = useState("GV-NEW-001");
   const [formStock, setFormStock] = useState<number>(10);
-  const [formImageUrl, setFormImageUrl] = useState("https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1000&q=80");
+  const [formImageUrl, setFormImageUrl] = useState("");
+  const [imagePreview, setImagePreview] = useState<string>("");
   const [formShortDesc, setFormShortDesc] = useState("Authentic handcrafted heirloom with pure zari pallu.");
   const [formPreset, setFormPreset] = useState<"kanchipuram" | "banarasi" | "organza" | "velvet" | "chiffon">("kanchipuram");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setFormImageUrl(dataUrl);
+      setImagePreview(dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const openAddModal = () => {
     setEditingProduct(null);
@@ -53,7 +69,8 @@ export default function AdminProductsPage() {
     setFormColorCode("#881337");
     setFormSku(`GV-${Date.now().toString(36).toUpperCase()}`);
     setFormStock(10);
-    setFormImageUrl("https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1000&q=80");
+    setFormImageUrl("");
+    setImagePreview("");
     setFormShortDesc("Heirloom pure handloom with traditional border and rich pallu.");
     setFormPreset("kanchipuram");
     setIsAddModalOpen(true);
@@ -72,6 +89,7 @@ export default function AdminProductsPage() {
     setFormSku(p.sku);
     setFormStock(p.stock);
     setFormImageUrl(p.images[0] || "");
+    setImagePreview(p.images[0] || "");
     setFormShortDesc(p.short_description);
     setFormPreset(p.three_d_preset || "kanchipuram");
     setIsAddModalOpen(true);
@@ -480,14 +498,44 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-stone-300">High-Resolution Image URL</label>
+                <label className="block font-semibold text-stone-300">
+                  Product Image <span className="text-stone-500 font-normal">(PNG, JPG, JPEG, WEBP)</span>
+                </label>
+
+                {/* Hidden file input */}
                 <input
-                  type="url"
-                  value={formImageUrl}
-                  onChange={(e) => setFormImageUrl(e.target.value)}
-                  required
-                  className="mt-1 w-full rounded-xl border border-white/15 bg-white/5 p-2.5 text-white outline-none focus:border-amber-400"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  onChange={handleImageFileChange}
+                  className="hidden"
                 />
+
+                {/* Upload Area */}
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-1 cursor-pointer rounded-xl border-2 border-dashed border-amber-500/30 bg-white/5 p-4 text-center transition hover:border-amber-400 hover:bg-white/10"
+                >
+                  {imagePreview ? (
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="h-20 w-16 rounded-lg object-cover border border-amber-500/30 shrink-0"
+                      />
+                      <div className="text-left">
+                        <p className="text-xs font-semibold text-amber-300">Image uploaded ✓</p>
+                        <p className="text-[10px] text-stone-400 mt-1">Click to replace with a different image</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-4">
+                      <Upload className="mx-auto h-8 w-8 text-amber-500/50 mb-2" />
+                      <p className="text-xs font-semibold text-stone-300">Click to upload garment image</p>
+                      <p className="text-[10px] text-stone-500 mt-1">PNG, JPG, JPEG or WEBP • Max 5 MB</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
