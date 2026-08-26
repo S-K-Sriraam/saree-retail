@@ -80,7 +80,7 @@ export interface Order {
   tax: number;
   shipping: number;
   total: number;
-  status: "pending" | "processing" | "handcrafted" | "shipped" | "delivered";
+  status: "pending" | "processing" | "handcrafted" | "shipped" | "delivered" | "cancelled";
   paymentMethod: "upi" | "card" | "netbanking" | "cod";
   trackingNumber?: string;
   estimatedDelivery?: string;

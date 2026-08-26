@@ -56,7 +56,7 @@ export default function AdminOrdersPage() {
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#14111a] p-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-1.5">
-          {["all", "pending", "processing", "handcrafted", "shipped", "delivered"].map((st) => (
+          {["all", "pending", "processing", "handcrafted", "shipped", "delivered", "cancelled"].map((st) => (
             <button
               key={st}
               onClick={() => setSelectedStatus(st)}
@@ -159,8 +159,12 @@ export default function AdminOrdersPage() {
                         value={order.status}
                         onChange={(e) => updateOrderStatus(order.id, e.target.value as any)}
                         className={`rounded-xl border px-3 py-1.5 text-xs font-bold outline-none uppercase ${
-                          order.status === "delivered"
+                          order.status === "cancelled"
+                            ? "border-rose-500/40 bg-rose-950/50 text-rose-300"
+                            : order.status === "delivered"
                             ? "border-emerald-500/40 bg-emerald-950/50 text-emerald-300"
+                            : order.status === "shipped"
+                            ? "border-sky-500/40 bg-sky-950/50 text-sky-300"
                             : "border-amber-500/40 bg-amber-950/50 text-amber-300"
                         }`}
                       >
@@ -169,6 +173,7 @@ export default function AdminOrdersPage() {
                         <option value="handcrafted" className="bg-[#14111a] text-white">Handcrafted</option>
                         <option value="shipped" className="bg-[#14111a] text-white">Shipped</option>
                         <option value="delivered" className="bg-[#14111a] text-white">Delivered</option>
+                        <option value="cancelled" className="bg-[#14111a] text-rose-300">Cancelled</option>
                       </select>
                     </td>
 

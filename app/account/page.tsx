@@ -14,11 +14,17 @@ import {
   Truck, 
   CheckCircle2, 
   Clock, 
-  ChevronRight,
-  ShoppingBag,
-  ExternalLink
+  ChevronRight, 
+  ShoppingBag, 
+  ExternalLink,
+  AlertTriangle,
+  XCircle,
+  AlertCircle,
+  X,
+  Ban
 } from "lucide-react";
 import { useBoutique } from "@/lib/store";
+import { Order } from "@/lib/mock-data";
 import ProductCard from "@/components/ui/ProductCard";
 
 export default function AccountPage() {
@@ -27,12 +33,14 @@ export default function AccountPage() {
     currentUser, 
     logoutCustomer, 
     orders, 
+    cancelOrder,
     wishlist, 
     products, 
     addToCart 
   } = useBoutique();
 
   const [activeTab, setActiveTab] = useState<"orders" | "wishlist" | "addresses" | "vip">("orders");
+  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
 
   // If not logged in, prompt user to sign in
   if (!currentUser) {
@@ -54,7 +62,7 @@ export default function AccountPage() {
               href="/auth/login"
               className="block w-full rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 py-3 text-xs font-bold text-stone-950 shadow hover:brightness-110"
             >
-              Sign In with Email & OTP
+              Sign In with Email & Password
             </Link>
 
             <Link
@@ -78,6 +86,7 @@ export default function AccountPage() {
       case "handcrafted": return 3;
       case "shipped": return 4;
       case "delivered": return 5;
+      case "cancelled": return 0;
       default: return 2;
     }
   };
@@ -178,6 +187,10 @@ export default function AccountPage() {
             ) : (
               orders.map((order) => {
                 const step = getStatusStep(order.status);
+                const isCancelled = order.status === "cancelled";
+                const isDispatched = order.status === "shipped" || order.status === "delivered";
+                const canCancel = !isCancelled && !isDispatched;
+
                 return (
                   <div
                     key={order.id}
@@ -196,8 +209,12 @@ export default function AccountPage() {
 
                       <div className="flex items-center gap-3">
                         <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
-                          order.status === "delivered"
+                          isCancelled
+                            ? "bg-rose-100 text-rose-800 border border-rose-300"
+                            : order.status === "delivered"
                             ? "bg-emerald-100 text-emerald-800"
+                            : order.status === "shipped"
+                            ? "bg-sky-100 text-sky-800"
                             : "bg-amber-100 text-amber-900"
                         }`}>
                           Status: {order.status}
@@ -205,38 +222,81 @@ export default function AccountPage() {
                       </div>
                     </div>
 
-                    {/* Step-by-Step Progress Timeline */}
-                    <div className="py-2">
-                      <p className="text-xs font-semibold text-stone-700 mb-4">
-                        Live Handcraft & Delivery Milestones:
-                      </p>
-                      <div className="grid grid-cols-4 gap-2 text-center">
-                        {[
-                          { title: "Confirmed", desc: "Payment Approved" },
-                          { title: "Handcrafting", desc: "Artisan Finishing" },
-                          { title: "Dispatched", desc: "Air Courier Transit" },
-                          { title: "Delivered", desc: "Doorstep Received" }
-                        ].map((m, idx) => {
-                          const isDone = step >= idx + 1;
-                          const isCurrent = step === idx + 1;
-                          return (
-                            <div key={idx} className="flex flex-col items-center">
-                              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                                isDone
-                                  ? "bg-amber-700 text-white"
-                                  : "bg-stone-200 text-stone-500"
-                              }`}>
-                                {isDone ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
-                              </div>
-                              <span className={`mt-2 text-xs font-bold ${isCurrent ? "text-amber-900" : "text-stone-700"}`}>
-                                {m.title}
-                              </span>
-                              <span className="text-[10px] text-stone-400 hidden sm:inline">{m.desc}</span>
-                            </div>
-                          );
-                        })}
+                    {/* Step-by-Step Progress Timeline or Cancelled State */}
+                    {isCancelled ? (
+                      <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-4 text-xs text-rose-800 flex items-center gap-3">
+                        <XCircle className="h-5 w-5 text-rose-600 shrink-0" />
+                        <div>
+                          <p className="font-bold text-rose-900">Order Cancelled</p>
+                          <p className="text-[11px] text-rose-700 mt-0.5">
+                            As per policy, 100% refund processing has been initiated to your original payment method.
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="py-2">
+                        <p className="text-xs font-semibold text-stone-700 mb-4">
+                          Live Handcraft & Delivery Milestones:
+                        </p>
+                        <div className="grid grid-cols-4 gap-2 text-center">
+                          {[
+                            { title: "Confirmed", desc: "Payment Approved" },
+                            { title: "Handcrafting", desc: "Artisan Finishing" },
+                            { title: "Dispatched", desc: "Air Courier Transit" },
+                            { title: "Delivered", desc: "Doorstep Received" }
+                          ].map((m, idx) => {
+                            const isDone = step >= idx + 1;
+                            const isCurrent = step === idx + 1;
+                            return (
+                              <div key={idx} className="flex flex-col items-center">
+                                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
+                                  isDone
+                                    ? "bg-amber-700 text-white"
+                                    : "bg-stone-200 text-stone-500"
+                                }`}>
+                                  {isDone ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
+                                </div>
+                                <span className={`mt-2 text-xs font-bold ${isCurrent ? "text-amber-900" : "text-stone-700"}`}>
+                                  {m.title}
+                                </span>
+                                <span className="text-[10px] text-stone-400 hidden sm:inline">{m.desc}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cancellation Policy Banner & Cancel Action */}
+                    {!isCancelled && (
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl bg-amber-50/90 border border-amber-300/80 p-3.5 text-xs text-amber-950 shadow-sm">
+                        <div className="flex items-start gap-2.5">
+                          <AlertTriangle className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-bold text-amber-900">
+                              Order Cancellation Policy:
+                            </p>
+                            <p className="text-[11px] text-amber-800 font-semibold mt-0.5 leading-relaxed">
+                              &ldquo;Cancel order before shipping the product else no refund will be done...&rdquo;
+                            </p>
+                          </div>
+                        </div>
+
+                        {canCancel ? (
+                          <button
+                            type="button"
+                            onClick={() => setOrderToCancel(order)}
+                            className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 hover:border-rose-400 transition shadow-sm shrink-0"
+                          >
+                            Cancel Order
+                          </button>
+                        ) : (
+                          <span className="rounded-lg bg-stone-200/80 px-2.5 py-1 text-[10px] font-bold text-stone-600 shrink-0">
+                            Dispatched (Non-Cancellable)
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {/* Order items */}
                     <div className="border-t border-stone-100 pt-4 space-y-3">
@@ -333,6 +393,61 @@ export default function AccountPage() {
           </div>
         )}
       </div>
+
+      {/* Cancel Order Confirmation Modal */}
+      {orderToCancel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-3xl border border-rose-300 bg-white p-6 sm:p-8 text-stone-900 shadow-2xl animate-in zoom-in-95">
+            <button
+              onClick={() => setOrderToCancel(null)}
+              className="absolute top-5 right-5 text-stone-400 hover:text-stone-700"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-700 mx-auto shadow-inner">
+              <AlertTriangle className="h-7 w-7" />
+            </div>
+
+            <h3 className="mt-4 text-center text-xl font-bold font-serif-luxury text-stone-900">
+              Cancel Order {orderToCancel.orderNumber}?
+            </h3>
+
+            <div className="mt-4 rounded-2xl bg-rose-50 border border-rose-200 p-4 text-xs text-rose-900 space-y-2">
+              <p className="font-bold text-rose-950 flex items-center gap-1.5">
+                <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                Cancellation & Refund Notice:
+              </p>
+              <p className="font-semibold text-rose-800 leading-relaxed bg-white/60 p-2 rounded-xl border border-rose-200/60">
+                &ldquo;Cancel order before shipping the product else no refund will be done...&rdquo;
+              </p>
+              <p className="text-[11px] text-rose-700">
+                Your order is currently <strong>{orderToCancel.status.toUpperCase()}</strong> (prior to shipping dispatch). Cancelling now will initiate a 100% full refund back to your original payment method within 3-5 business days.
+              </p>
+            </div>
+
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={() => setOrderToCancel(null)}
+                className="flex-1 rounded-xl border border-stone-300 bg-white py-3 text-xs font-bold text-stone-700 hover:bg-stone-50 transition"
+              >
+                Keep My Order
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  cancelOrder(orderToCancel.id);
+                  setOrderToCancel(null);
+                }}
+                className="flex-1 rounded-xl bg-rose-600 py-3 text-xs font-bold text-white shadow-lg shadow-rose-600/30 hover:bg-rose-700 transition"
+              >
+                Yes, Cancel Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

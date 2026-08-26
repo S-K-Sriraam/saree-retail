@@ -87,6 +87,7 @@ interface BoutiqueContextType {
   orders: Order[];
   createOrder: (orderData: Omit<Order, "id" | "orderNumber" | "date" | "status">) => Order;
   updateOrderStatus: (orderId: string, status: Order["status"]) => void;
+  cancelOrder: (orderId: string) => void;
 
   // UI state
   isCartDrawerOpen: boolean;
@@ -663,6 +664,18 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }).catch(e => console.warn("Supabase order status update error:", e));
   };
 
+  const cancelOrder = (orderId: string) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: "cancelled" } : o));
+    showToast("Order has been successfully cancelled.");
+
+    // Persist status update to Supabase
+    fetch("/api/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId, status: "cancelled" })
+    }).catch(e => console.warn("Supabase cancel order error:", e));
+  };
+
   // Derived calculations
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartSubtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -710,6 +723,7 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         orders,
         createOrder,
         updateOrderStatus,
+        cancelOrder,
         isCartDrawerOpen,
         setIsCartDrawerOpen,
         quickViewProduct,
