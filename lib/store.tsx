@@ -172,7 +172,26 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       .then(res => res.json())
       .then(result => {
         if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+          // Supabase has products → use them as the source of truth
           setProducts(result.data);
+          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(result.data));
+        } else {
+          // Supabase is empty → push our local products up to Supabase
+          const localProds = (() => {
+            try {
+              const saved = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+              return saved ? JSON.parse(saved) : [];
+            } catch { return []; }
+          })();
+          if (localProds.length > 0) {
+            Promise.all(localProds.map((p: any) =>
+              fetch("/api/products", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(p)
+              }).catch(() => null)
+            )).then(() => console.log("Local products synced to Supabase."));
+          }
         }
       })
       .catch(err => console.warn("Supabase products sync note:", err));
