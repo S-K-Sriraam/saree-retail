@@ -11,6 +11,48 @@ const HEADERS = {
   Prefer: "return=representation"
 };
 
+// Helper: Convert Supabase snake_case row to frontend Order model
+function rowToOrder(row: any): Order {
+  let shippingAddress = row.shipping_address || row.shippingAddress || {};
+  if (typeof shippingAddress === "string") {
+    try {
+      shippingAddress = JSON.parse(shippingAddress);
+    } catch {}
+  }
+
+  let items = row.items || [];
+  if (typeof items === "string") {
+    try {
+      items = JSON.parse(items);
+    } catch {}
+  }
+
+  return {
+    id: row.id,
+    orderNumber: row.order_number || row.orderNumber || row.id,
+    date: row.date || new Date().toISOString().split("T")[0],
+    customerName: row.customer_name || row.customerName || "Customer",
+    customerEmail: row.customer_email || row.customerEmail || "",
+    customerPhone: row.customer_phone || row.customerPhone || "",
+    shippingAddress: {
+      street: shippingAddress.street || shippingAddress.line1 || "",
+      city: shippingAddress.city || "",
+      state: shippingAddress.state || "",
+      pincode: shippingAddress.pincode || shippingAddress.postal_code || ""
+    },
+    items: Array.isArray(items) ? items : [],
+    subtotal: Number(row.subtotal) || 0,
+    discount: Number(row.discount) || 0,
+    tax: Number(row.tax) || 0,
+    shipping: Number(row.shipping) || 0,
+    total: Number(row.total) || 0,
+    status: row.status || "processing",
+    paymentMethod: row.payment_method || row.paymentMethod || "upi",
+    trackingNumber: row.tracking_number || row.trackingNumber || `GV-EXP-${Math.floor(10000 + Math.random() * 90000)}`,
+    estimatedDelivery: row.estimated_delivery || row.estimatedDelivery || "3-5 business days"
+  };
+}
+
 // GET /api/orders - Fetch all orders from Supabase
 export async function GET() {
   try {
@@ -25,8 +67,9 @@ export async function GET() {
       return NextResponse.json({ success: false, data: [], error: err });
     }
 
-    const data = await res.json();
-    return NextResponse.json({ success: true, data: data || [] });
+    const rawData = await res.json();
+    const formattedOrders: Order[] = Array.isArray(rawData) ? rawData.map(rowToOrder) : [];
+    return NextResponse.json({ success: true, data: formattedOrders });
   } catch (error: any) {
     console.error("Error in GET /api/orders:", error);
     return NextResponse.json({ success: false, data: [], error: error.message }, { status: 500 });
@@ -48,13 +91,13 @@ export async function POST(request: Request) {
       shipping_address: order.shippingAddress,
       items: order.items,
       subtotal: order.subtotal,
-      discount: order.discount,
-      tax: order.tax,
-      shipping: order.shipping,
+      discount: order.discount || 0,
+      tax: order.tax || 0,
+      shipping: order.shipping || 0,
       total: order.total,
-      status: order.status || "pending",
-      payment_method: order.paymentMethod,
-      tracking_number: order.trackingNumber || `GV-TRK-${Math.floor(100000 + Math.random() * 900000)}`,
+      status: order.status || "processing",
+      payment_method: order.paymentMethod || "upi",
+      tracking_number: order.trackingNumber || `GV-EXP-${Math.floor(10000 + Math.random() * 90000)}`,
       estimated_delivery: order.estimatedDelivery || "3-5 business days",
       created_at: new Date().toISOString()
     };
@@ -67,12 +110,13 @@ export async function POST(request: Request) {
 
     if (!res.ok) {
       const err = await res.text();
-      console.warn("Supabase insert order response:", res.status, err);
+      console.error("Supabase insert order response error:", res.status, err);
       return NextResponse.json({ success: false, error: err, fallbackOrder: order });
     }
 
     const created = await res.json();
-    return NextResponse.json({ success: true, data: created });
+    const formattedOrder = Array.isArray(created) && created[0] ? rowToOrder(created[0]) : order;
+    return NextResponse.json({ success: true, data: formattedOrder });
   } catch (error: any) {
     console.error("Error in POST /api/orders:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
