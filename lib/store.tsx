@@ -350,21 +350,42 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCurrentUser(user);
     showToast(`Welcome to Geethvarnam, ${user.name}!`);
 
-    // Persist and Sync customer profile (with mobile number) to Supabase
-    fetch("/api/profiles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(user)
-    }).catch(e => console.warn("Supabase profile sync error:", e));
+    // Fetch existing customer profile from Supabase to load full saved phone and name if logging in
+    fetch(`/api/profiles?email=${encodeURIComponent(cleanEmail)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.profile) {
+          const p = data.profile;
+          const merged: UserProfile = {
+            id: p.id || user.id,
+            name: p.name || user.name,
+            email: p.email || user.email,
+            phone: p.phone || user.phone,
+            role: "customer",
+            preferences: p.preferences || user.preferences,
+            joinedDate: p.joined_date || user.joinedDate
+          };
+          setCurrentUser(merged);
+        } else {
+          // If not in database yet, persist profile
+          fetch("/api/profiles", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(user)
+          }).catch(e => console.warn("Supabase profile sync error:", e));
+        }
+      })
+      .catch(e => console.warn("Profile fetch note:", e));
 
     return user;
   };
 
   const loginAdminDirect = (email: string, name?: string, phone?: string): UserProfile => {
+    const cleanEmail = email.toLowerCase().trim();
     const admin: UserProfile = {
       id: "admin-" + Math.random().toString(36).substring(2, 9),
-      name: name || email.split("@")[0].replace(".", " ").replace(/\b\w/g, l => l.toUpperCase()),
-      email: email.toLowerCase(),
+      name: name || cleanEmail.split("@")[0].replace(".", " ").replace(/\b\w/g, l => l.toUpperCase()),
+      email: cleanEmail,
       phone: phone || "",
       role: "admin",
       joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" })
@@ -372,12 +393,30 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setAdminUser(admin);
     showToast(`Welcome to Executive Management Console, ${admin.name}!`);
 
-    // Sync profile to Supabase
-    fetch("/api/profiles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(admin)
-    }).catch(e => console.warn("Supabase profile sync error:", e));
+    // Fetch existing admin profile from Supabase
+    fetch(`/api/profiles?email=${encodeURIComponent(cleanEmail)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.profile) {
+          const p = data.profile;
+          const merged: UserProfile = {
+            id: p.id || admin.id,
+            name: p.name || admin.name,
+            email: p.email || admin.email,
+            phone: p.phone || admin.phone,
+            role: "admin",
+            joinedDate: p.joined_date || admin.joinedDate
+          };
+          setAdminUser(merged);
+        } else {
+          fetch("/api/profiles", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(admin)
+          }).catch(e => console.warn("Supabase profile sync error:", e));
+        }
+      })
+      .catch(e => console.warn("Admin profile fetch note:", e));
 
     return admin;
   };
