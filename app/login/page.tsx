@@ -23,7 +23,7 @@ export default function LoginPage() {
         {/* Header Title */}
         <div className="text-center mb-10">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-amber-300">
-            <Sparkles className="h-3.5 w-3.5 text-amber-400" /> Geethvarnam Access Gateway
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" /> Geethavarnam Access Gateway
           </span>
           <h1 className="mt-4 text-3xl font-bold text-white font-serif-luxury sm:text-4xl">
             Select Your Authentication Portal

@@ -453,7 +453,7 @@ export default function CheckoutPage() {
               </button>
 
               <p className="text-[10px] text-center text-stone-400">
-                By placing order, you agree to Geethvarnam terms of bespoke handloom crafting.
+                By placing order, you agree to Geethavarnam terms of bespoke handloom crafting.
               </p>
             </div>
           </div>

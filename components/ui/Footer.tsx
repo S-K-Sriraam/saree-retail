@@ -14,7 +14,7 @@ export default function Footer() {
     e.preventDefault();
     if (!email) return;
     setSubscribed(true);
-    showToast("Welcome to Geethvarnam VIP Connoisseur Circle! 15% promo sent.");
+    showToast("Welcome to Geethavarnam VIP Connoisseur Circle! 15% promo sent.");
     setEmail("");
   };
 
@@ -72,7 +72,7 @@ export default function Footer() {
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="inline-block">
               <span className="text-2xl font-bold text-white font-serif-luxury tracking-tight">
-                Geethvarnam
+                Geethavarnam
               </span>
               <span className="block text-[10px] tracking-[0.3em] font-semibold text-amber-400 uppercase">
                 Haute Couture Indian Boutique
@@ -154,7 +154,7 @@ export default function Footer() {
 
         {/* Bottom copyright */}
         <div className="mt-12 border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
-          <p>&copy; 2026 Geethvarnam Silk & Chudar Boutique. All rights reserved.</p>
+          <p>&copy; 2026 Geethavarnam Silk & Chudar Boutique. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-1 text-amber-400/80">
               <Heart className="h-3.5 w-3.5 fill-amber-400" /> Handcrafted with Heritage Pride

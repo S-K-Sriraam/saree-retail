@@ -86,13 +86,13 @@ export async function POST(request: Request) {
           );
 
           await transporter.sendMail({
-            from: `"Geethvarnam Luxury Boutique" <${gmailUser}>`,
+            from: `"Geethavarnam Luxury Boutique" <${gmailUser}>`,
             to: cleanEmail,
-            subject: `${otpCode} is your Geethvarnam ${isAdmin ? "Admin Security" : "Verification"} Passcode`,
+            subject: `${otpCode} is your Geethavarnam ${isAdmin ? "Admin Security" : "Verification"} Passcode`,
             html: `
               <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0c0a0e; color: #ffffff; padding: 40px 30px; border-radius: 20px; border: 1px solid rgba(217, 119, 6, 0.4);">
                 <div style="text-align: center; margin-bottom: 25px;">
-                  <h1 style="color: #f59e0b; margin: 0; font-size: 26px; letter-spacing: 2px; text-transform: uppercase;">GEETHVARNAM</h1>
+                  <h1 style="color: #f59e0b; margin: 0; font-size: 26px; letter-spacing: 2px; text-transform: uppercase;">GEETHAVARNAM</h1>
                   <p style="color: #a8a29e; font-size: 11px; letter-spacing: 3px; margin-top: 5px; text-transform: uppercase;">Luxury Saree & Chudar Couture</p>
                 </div>
                 
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
                   <p style="color: #78716c; font-size: 11px; margin-top: 20px;">This code is valid for 5 minutes. Never share this passcode with anyone.</p>
                 </div>
                 
-                <p style="color: #57534e; font-size: 11px; text-align: center; margin: 0;">&copy; 2026 Geethvarnam Heritage Boutique. All rights reserved.</p>
+                <p style="color: #57534e; font-size: 11px; text-align: center; margin: 0;">&copy; 2026 Geethavarnam Heritage Boutique. All rights reserved.</p>
               </div>
             `
           });
@@ -123,11 +123,11 @@ export async function POST(request: Request) {
       // B. Resend API Dispatch (Fallback if configured)
       const resendKey = process.env.RESEND_API_KEY;
       if (resendKey && !deliveryStatus.emailSent) {
-        const fromEmail = process.env.RESEND_FROM_EMAIL || "Geethvarnam Boutique <onboarding@resend.dev>";
+        const fromEmail = process.env.RESEND_FROM_EMAIL || "Geethavarnam Boutique <onboarding@resend.dev>";
         const emailTemplate = `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0c0a0e; color: #ffffff; padding: 40px 30px; border-radius: 20px; border: 1px solid rgba(217, 119, 6, 0.4);">
             <div style="text-align: center; margin-bottom: 25px;">
-              <h1 style="color: #f59e0b; margin: 0; font-size: 26px; letter-spacing: 2px; text-transform: uppercase;">GEETHVARNAM</h1>
+              <h1 style="color: #f59e0b; margin: 0; font-size: 26px; letter-spacing: 2px; text-transform: uppercase;">GEETHAVARNAM</h1>
               <p style="color: #a8a29e; font-size: 11px; letter-spacing: 3px; margin-top: 5px; text-transform: uppercase;">Luxury Saree & Chudar Couture</p>
             </div>
             
@@ -142,7 +142,7 @@ export async function POST(request: Request) {
               <p style="color: #78716c; font-size: 11px; margin-top: 20px;">This code is valid for 5 minutes. Never share this passcode with anyone.</p>
             </div>
             
-            <p style="color: #57534e; font-size: 11px; text-align: center; margin: 0;">&copy; 2026 Geethvarnam Heritage Boutique. All rights reserved.</p>
+            <p style="color: #57534e; font-size: 11px; text-align: center; margin: 0;">&copy; 2026 Geethavarnam Heritage Boutique. All rights reserved.</p>
           </div>
         `;
 
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
             body: JSON.stringify({
               from: fromEmail,
               to: [cleanEmail],
-              subject: `${otpCode} is your Geethvarnam ${isAdmin ? "Admin Security" : "Verification"} Code`,
+              subject: `${otpCode} is your Geethavarnam ${isAdmin ? "Admin Security" : "Verification"} Code`,
               html: emailTemplate
             })
           });
@@ -171,7 +171,7 @@ export async function POST(request: Request) {
             // If Resend free sandbox restriction 403 (send to verified owner email)
             if (res.status === 403) {
               const verifiedOwnerEmail = "sriraamsk05@gmail.com";
-              const fallbackSubject = `[${otpCode}] Geethvarnam ${isAdmin ? "Admin OTP" : "Verification OTP"} for ${cleanEmail}`;
+              const fallbackSubject = `[${otpCode}] Geethavarnam ${isAdmin ? "Admin OTP" : "Verification OTP"} for ${cleanEmail}`;
 
               const fallbackRes = await fetch("https://api.resend.com/emails", {
                 method: "POST",

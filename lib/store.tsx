@@ -396,7 +396,7 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" })
     };
     setCurrentUser(user);
-    showToast(`Welcome to Geethvarnam, ${user.name}!`);
+    showToast(`Welcome to Geethavarnam, ${user.name}!`);
 
     // Fetch existing customer profile from Supabase to load full saved phone and name if logging in
     fetch(`/api/profiles?email=${encodeURIComponent(cleanEmail)}`)

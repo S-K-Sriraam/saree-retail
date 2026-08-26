@@ -103,7 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <ShieldAlert className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-base font-bold text-white font-serif-luxury">Geethvarnam</h1>
+                <h1 className="text-base font-bold text-white font-serif-luxury">Geethavarnam</h1>
                 <span className="text-[10px] font-bold text-amber-400 tracking-wider uppercase block -mt-1">
                   Executive Suite
                 </span>

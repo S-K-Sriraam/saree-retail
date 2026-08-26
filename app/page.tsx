@@ -330,7 +330,7 @@ export default function HomePage() {
                 Woven in Tradition, Tailored for Royalty
               </h2>
               <p className="mt-4 text-xs text-stone-700 leading-relaxed sm:text-sm">
-                Each Geethvarnam creation begins at the looms of master artisans in Kanchipuram, Varanasi, and Jaipur. From spinning pure mulberry silk threads to dipping gold zari cords, our handlooms preserve centuries of artistic devotion.
+                Each Geethavarnam creation begins at the looms of master artisans in Kanchipuram, Varanasi, and Jaipur. From spinning pure mulberry silk threads to dipping gold zari cords, our handlooms preserve centuries of artistic devotion.
               </p>
 
               <div className="mt-8 space-y-3">
@@ -392,7 +392,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="text-center">
           <p className="text-xs font-bold uppercase tracking-wider text-amber-800">
-            The Geethvarnam Standard
+            The Geethavarnam Standard
           </p>
           <h2 className="mt-2 text-2xl font-bold text-stone-900 font-serif-luxury sm:text-3xl">
             Pillars of Artisanal Luxury & Royal Craft

@@ -60,7 +60,7 @@ export default function Navbar() {
           {/* Boutique Brand Logo */}
           <Link href="/" className="group flex flex-col items-center">
             <span className="text-2xl font-bold tracking-tight text-stone-900 font-serif-luxury sm:text-3xl group-hover:text-amber-900 transition">
-              Geethvarnam
+              Geethavarnam
             </span>
             <span className="text-[10px] tracking-[0.3em] font-semibold text-amber-700 uppercase -mt-0.5">
               Silk & Couture Boutique

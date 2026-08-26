@@ -1,5 +1,5 @@
 -- ==============================================================================
--- GEETHVARNAM LUXURY BOUTIQUE: MASTER DATABASE SCHEMA
+-- GEETHAVARNAM LUXURY BOUTIQUE: MASTER DATABASE SCHEMA
 -- Instructions: Copy ALL text in this file, paste into Supabase Dashboard -> 
 -- SQL Editor -> New Query -> Run.
 -- ==============================================================================
