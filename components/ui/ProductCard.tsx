@@ -105,7 +105,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="flex flex-1 flex-col p-4">
         {/* Weave / Subcategory */}
         <div className="flex items-center justify-between text-xs text-amber-800">
-          <span className="font-semibold">{product.subcategory}</span>
+          <span className="font-semibold">{product.subcategory || (product.category === "saree" ? "Saree Couture" : "Chudar & Salwar")}</span>
           {product.reviews_count > 0 ? (
             <div className="flex items-center gap-1 text-amber-500">
               <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
@@ -133,11 +133,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="mt-3 flex items-baseline justify-between border-t border-stone-100 pt-3">
           <div className="flex items-baseline gap-2">
             <span className="text-base font-bold text-stone-950">
-              Rs. {product.base_price.toLocaleString("en-IN")}
+              Rs. {Number(product.base_price).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
             </span>
             {product.compare_price && (
               <span className="text-xs text-stone-400 line-through">
-                Rs. {product.compare_price.toLocaleString("en-IN")}
+                Rs. {Number(product.compare_price).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
               </span>
             )}
           </div>

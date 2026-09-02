@@ -84,7 +84,7 @@ export default function QuickViewModal() {
         {/* Right Product Details & Options */}
         <div className="flex flex-1 flex-col overflow-y-auto p-6 md:p-8">
           <div className="flex items-center justify-between text-xs text-amber-800">
-            <span className="font-semibold uppercase tracking-wider">{product.subcategory}</span>
+            <span className="font-semibold uppercase tracking-wider">{product.subcategory || (product.category === "saree" ? "Saree Couture" : "Chudar & Salwar")}</span>
             {product.reviews_count > 0 ? (
               <div className="flex items-center gap-1">
                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -109,11 +109,11 @@ export default function QuickViewModal() {
           {/* Price */}
           <div className="mt-4 flex items-baseline gap-3">
             <span className="text-2xl font-bold text-stone-950">
-              Rs. {product.base_price.toLocaleString("en-IN")}
+              Rs. {Number(product.base_price).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
             </span>
             {product.compare_price && (
               <span className="text-sm text-stone-400 line-through">
-                Rs. {product.compare_price.toLocaleString("en-IN")}
+                Rs. {Number(product.compare_price).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
               </span>
             )}
             <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">

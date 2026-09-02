@@ -179,11 +179,11 @@ export default function CartPage() {
 
                       <div className="text-right">
                         <span className="text-sm font-bold text-stone-950 sm:text-base">
-                          Rs. {(item.price * item.quantity).toLocaleString("en-IN")}
+                          Rs. {Number(item.price * item.quantity).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
                         </span>
                         {item.quantity > 1 && (
                           <span className="block text-[10px] text-stone-400">
-                            (Rs. {item.price.toLocaleString("en-IN")} each)
+                            (Rs. {Number(item.price).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })} each)
                           </span>
                         )}
                       </div>
@@ -245,17 +245,17 @@ export default function CartPage() {
                 <div className="space-y-2 border-t border-stone-100 pt-4 text-xs text-stone-600">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span className="font-semibold text-stone-900">Rs. {cartSubtotal.toLocaleString("en-IN")}</span>
+                    <span className="font-semibold text-stone-900">Rs. {Number(cartSubtotal).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}</span>
                   </div>
                   {cartDiscount > 0 && (
                     <div className="flex justify-between text-emerald-700 font-semibold">
                       <span>Privilege Discount</span>
-                      <span>- Rs. {cartDiscount.toLocaleString("en-IN")}</span>
+                      <span>- Rs. {Number(cartDiscount).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span>Goods & Services Tax (GST 5%)</span>
-                    <span>Rs. {cartTax.toFixed(2)}</span>
+                    <span>Rs. {Number(cartTax).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Insured Express Shipping</span>
@@ -263,7 +263,7 @@ export default function CartPage() {
                   </div>
                   <div className="flex justify-between border-t border-stone-200 pt-3 text-base font-bold text-stone-950">
                     <span>Total Amount</span>
-                    <span>Rs. {Math.round(cartTotal).toLocaleString("en-IN")}</span>
+                    <span>Rs. {Number(cartTotal).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}</span>
                   </div>
                 </div>
 

@@ -31,9 +31,7 @@ export default function AdminProductsPage() {
   // Form State for Add / Edit
   const [formName, setFormName] = useState("");
   const [formCategory, setFormCategory] = useState<"saree" | "chudar">("saree");
-  const [formSubcategory, setFormSubcategory] = useState("Kanchipuram Silk");
-  const [formPrice, setFormPrice] = useState<number>(12999);
-  const [formComparePrice, setFormComparePrice] = useState<number>(16999);
+  const [formPrice, setFormPrice] = useState<string>("0.0");
   const [formFabric, setFormFabric] = useState("Pure Mulberry Silk");
   const [formColor, setFormColor] = useState("Royal Maroon & Gold");
   const [formColorCode, setFormColorCode] = useState("#881337");
@@ -61,9 +59,7 @@ export default function AdminProductsPage() {
     setEditingProduct(null);
     setFormName("");
     setFormCategory("saree");
-    setFormSubcategory("Kanchipuram Silk");
-    setFormPrice(12999);
-    setFormComparePrice(16999);
+    setFormPrice("0.0");
     setFormFabric("Pure Mulberry Silk");
     setFormColor("Imperial Crimson & Gold");
     setFormColorCode("#881337");
@@ -80,9 +76,7 @@ export default function AdminProductsPage() {
     setEditingProduct(p);
     setFormName(p.name);
     setFormCategory(p.category);
-    setFormSubcategory(p.subcategory);
-    setFormPrice(p.base_price);
-    setFormComparePrice(p.compare_price || p.base_price);
+    setFormPrice(p.base_price !== undefined ? p.base_price.toString() : "0.0");
     setFormFabric(p.fabric);
     setFormColor(p.color);
     setFormColorCode(p.color_code);
@@ -99,13 +93,14 @@ export default function AdminProductsPage() {
     e.preventDefault();
     if (!formName) return;
 
+    const parsedPrice = parseFloat(formPrice);
+    const validPrice = isNaN(parsedPrice) ? 0.0 : Math.min(200, Math.max(0, parsedPrice));
+
     if (editingProduct) {
       updateProduct(editingProduct.id, {
         name: formName,
         category: formCategory,
-        subcategory: formSubcategory,
-        base_price: Number(formPrice),
-        compare_price: Number(formComparePrice),
+        base_price: Number(validPrice.toFixed(2)),
         fabric: formFabric,
         color: formColor,
         color_code: formColorCode,
@@ -120,9 +115,7 @@ export default function AdminProductsPage() {
         name: formName,
         slug: formName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
         category: formCategory,
-        subcategory: formSubcategory,
-        base_price: Number(formPrice),
-        compare_price: Number(formComparePrice),
+        base_price: Number(validPrice.toFixed(2)),
         fabric: formFabric,
         color: formColor,
         color_code: formColorCode,
@@ -270,7 +263,9 @@ export default function AdminProductsPage() {
                     }`}>
                       {product.category}
                     </span>
-                    <span className="block text-[10px] text-stone-400 mt-0.5">{product.subcategory}</span>
+                    {product.subcategory && (
+                      <span className="block text-[10px] text-stone-400 mt-0.5">{product.subcategory}</span>
+                    )}
                   </td>
 
                   <td className="p-4 text-stone-300">
@@ -279,10 +274,10 @@ export default function AdminProductsPage() {
                   </td>
 
                   <td className="p-4 font-bold text-white">
-                    Rs. {product.base_price.toLocaleString("en-IN")}
+                    Rs. {Number(product.base_price).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
                     {product.compare_price && (
                       <span className="block text-[10px] text-stone-500 line-through">
-                        Rs. {product.compare_price.toLocaleString("en-IN")}
+                        Rs. {Number(product.compare_price).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
                       </span>
                     )}
                   </td>
@@ -383,50 +378,33 @@ export default function AdminProductsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-semibold text-stone-300">Category</label>
-                  <select
-                    value={formCategory}
-                    onChange={(e) => setFormCategory(e.target.value as any)}
-                    className="mt-1 w-full rounded-xl border border-white/15 bg-[#1f1b27] p-2.5 text-white outline-none focus:border-amber-400"
-                  >
-                    <option value="saree">Saree Couture</option>
-                    <option value="chudar">Chudar & Salwar Suite</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-stone-300">Subcategory</label>
-                  <input
-                    type="text"
-                    value={formSubcategory}
-                    onChange={(e) => setFormSubcategory(e.target.value)}
-                    placeholder="e.g. Kanchipuram Silk / Anarkali Suits"
-                    required
-                    className="mt-1 w-full rounded-xl border border-white/15 bg-white/5 p-2.5 text-white outline-none focus:border-amber-400"
-                  />
-                </div>
+              <div>
+                <label className="block font-semibold text-stone-300">Category</label>
+                <select
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value as any)}
+                  className="mt-1 w-full rounded-xl border border-white/15 bg-[#1f1b27] p-2.5 text-white outline-none focus:border-amber-400"
+                >
+                  <option value="saree">Saree Couture</option>
+                  <option value="chudar">Chudar & Salwar Suite</option>
+                </select>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-stone-300">Base Price (Rs.)</label>
+                  <div className="flex items-center justify-between">
+                    <label className="block font-semibold text-stone-300">Stock Price (Rs.)</label>
+                    <span className="text-[10px] font-normal text-amber-400">Max Rs. 200.00</span>
+                  </div>
                   <input
                     type="number"
+                    step="0.01"
+                    min="0"
+                    max="200"
                     value={formPrice}
-                    onChange={(e) => setFormPrice(Number(e.target.value))}
+                    onChange={(e) => setFormPrice(e.target.value)}
+                    placeholder="0.0"
                     required
-                    className="mt-1 w-full rounded-xl border border-white/15 bg-white/5 p-2.5 text-white outline-none focus:border-amber-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-stone-300">Compare Price (Rs.)</label>
-                  <input
-                    type="number"
-                    value={formComparePrice}
-                    onChange={(e) => setFormComparePrice(Number(e.target.value))}
                     className="mt-1 w-full rounded-xl border border-white/15 bg-white/5 p-2.5 text-white outline-none focus:border-amber-400"
                   />
                 </div>
@@ -435,6 +413,7 @@ export default function AdminProductsPage() {
                   <label className="block font-semibold text-stone-300">Stock Quantity</label>
                   <input
                     type="number"
+                    min="0"
                     value={formStock}
                     onChange={(e) => setFormStock(Number(e.target.value))}
                     required

@@ -3,7 +3,7 @@ export interface Product {
   name: string;
   slug: string;
   category: "saree" | "chudar";
-  subcategory: string;
+  subcategory?: string;
   base_price: number;
   compare_price?: number;
   fabric: string;

@@ -193,7 +193,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             {/* Header info */}
             <div>
               <div className="flex items-center justify-between text-xs text-amber-800">
-                <span className="font-bold uppercase tracking-wider">{product.subcategory}</span>
+                <span className="font-bold uppercase tracking-wider">{product.subcategory || (product.category === "saree" ? "Saree Couture" : "Chudar & Salwar")}</span>
                 {product.reviews_count > 0 ? (
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
@@ -220,16 +220,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <div className="rounded-2xl border border-amber-900/15 bg-white p-5 shadow-sm">
               <div className="flex items-baseline gap-3">
                 <span className="text-3xl font-bold text-stone-950">
-                  Rs. {product.base_price.toLocaleString("en-IN")}
+                  Rs. {Number(product.base_price).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
                 </span>
                 {product.compare_price && (
                   <span className="text-base text-stone-400 line-through">
-                    Rs. {product.compare_price.toLocaleString("en-IN")}
+                    Rs. {Number(product.compare_price).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
                   </span>
                 )}
                 {savingsAmount > 0 && (
                   <span className="rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-bold text-emerald-800">
-                    Save Rs. {savingsAmount.toLocaleString("en-IN")}
+                    Save Rs. {Number(savingsAmount).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
                   </span>
                 )}
               </div>
@@ -394,7 +394,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 py-3.5 text-xs font-bold text-white shadow-lg transition hover:brightness-110"
                 >
                   <Sparkles className="h-4 w-4" />
-                  <span>Instant Luxury Buy Now &bull; Rs. {(product.base_price * quantity).toLocaleString("en-IN")}</span>
+                  <span>Instant Luxury Buy Now &bull; Rs. {Number(product.base_price * quantity).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}</span>
                 </button>
               </div>
             </div>

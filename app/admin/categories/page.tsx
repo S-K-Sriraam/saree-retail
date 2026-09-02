@@ -54,10 +54,10 @@ export default function AdminCategoriesPage() {
               Active Subcollections:
             </h4>
             {[
-              { name: "Kanchipuram Silk", count: sarees.filter(s => s.subcategory.includes("Kanchipuram")).length },
-              { name: "Banarasi Silk", count: sarees.filter(s => s.subcategory.includes("Banarasi")).length },
-              { name: "Organza Sarees", count: sarees.filter(s => s.subcategory.includes("Organza")).length },
-              { name: "Chiffon & Georgette", count: sarees.filter(s => s.subcategory.includes("Chiffon")).length },
+              { name: "Kanchipuram Silk", count: sarees.filter(s => (s.subcategory || "").includes("Kanchipuram")).length },
+              { name: "Banarasi Silk", count: sarees.filter(s => (s.subcategory || "").includes("Banarasi")).length },
+              { name: "Organza Sarees", count: sarees.filter(s => (s.subcategory || "").includes("Organza")).length },
+              { name: "Chiffon & Georgette", count: sarees.filter(s => (s.subcategory || "").includes("Chiffon")).length },
             ].map((sub) => (
               <div key={sub.name} className="flex items-center justify-between rounded-xl bg-white/5 p-3 text-xs">
                 <span className="font-semibold text-white">{sub.name}</span>
@@ -101,10 +101,10 @@ export default function AdminCategoriesPage() {
               Active Subcollections:
             </h4>
             {[
-              { name: "Royal Anarkali Suits", count: chudars.filter(c => c.subcategory.includes("Anarkali")).length },
-              { name: "Straight Cut Salwar", count: chudars.filter(c => c.subcategory.includes("Straight")).length },
-              { name: "Palazzo Suits", count: chudars.filter(c => c.subcategory.includes("Palazzo")).length },
-              { name: "Sharara & Gharara Sets", count: chudars.filter(c => c.subcategory.includes("Sharara")).length },
+              { name: "Royal Anarkali Suits", count: chudars.filter(c => (c.subcategory || "").includes("Anarkali")).length },
+              { name: "Straight Cut Salwar", count: chudars.filter(c => (c.subcategory || "").includes("Straight")).length },
+              { name: "Palazzo Suits", count: chudars.filter(c => (c.subcategory || "").includes("Palazzo")).length },
+              { name: "Sharara & Gharara Sets", count: chudars.filter(c => (c.subcategory || "").includes("Sharara")).length },
             ].map((sub) => (
               <div key={sub.name} className="flex items-center justify-between rounded-xl bg-white/5 p-3 text-xs">
                 <span className="font-semibold text-white">{sub.name}</span>

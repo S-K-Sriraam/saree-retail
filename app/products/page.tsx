@@ -56,7 +56,7 @@ function ProductsContent() {
           return false;
         }
         // Subcategory filter
-        if (selectedSubcategory && !p.subcategory.toLowerCase().includes(selectedSubcategory.toLowerCase())) {
+        if (selectedSubcategory && !(p.subcategory || "").toLowerCase().includes(selectedSubcategory.toLowerCase())) {
           return false;
         }
         // Fabric filter
@@ -72,7 +72,7 @@ function ProductsContent() {
           const q = searchQuery.toLowerCase();
           const matchesName = p.name.toLowerCase().includes(q);
           const matchesFabric = p.fabric.toLowerCase().includes(q);
-          const matchesSub = p.subcategory.toLowerCase().includes(q);
+          const matchesSub = (p.subcategory || "").toLowerCase().includes(q);
           const matchesColor = p.color.toLowerCase().includes(q);
           if (!matchesName && !matchesFabric && !matchesSub && !matchesColor) {
             return false;
