@@ -27,14 +27,25 @@ async function getAvailableColumns(): Promise<string[]> {
   return ["id", "full_name", "phone", "avatar_url"];
 }
 
-// GET /api/profiles?email=...  — check if a user with this email exists
+// GET /api/profiles — fetch all profiles or query by email (?email=...)
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email");
 
-    if (!email) {
-      return NextResponse.json({ success: false, error: "Email query param required" }, { status: 400 });
+    // If no specific email is provided, return all profiles for Admin user management
+    if (!email || email === "all") {
+      let res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=*`, {
+        headers: HEADERS,
+        cache: "no-store",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        return NextResponse.json({ success: true, profiles: data || [] });
+      }
+
+      return NextResponse.json({ success: true, profiles: [] });
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -180,4 +191,55 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS preferences JSONB DEFAULT '
     console.error("Error in POST /api/profiles:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
+}
+
+// PUT / PATCH /api/profiles — Update profile details
+export async function PUT(request: Request) {
+  try {
+    const { id, email, updates } = await request.json();
+    if (!id && !email) {
+      return NextResponse.json({ success: false, error: "Profile ID or Email required" }, { status: 400 });
+    }
+
+    const availableCols = await getAvailableColumns();
+    const cleanUpdates: Record<string, any> = {};
+
+    if (updates.name || updates.full_name) {
+      cleanUpdates.full_name = updates.name || updates.full_name;
+      if (availableCols.includes("name")) cleanUpdates.name = updates.name || updates.full_name;
+    }
+    if (updates.phone !== undefined) cleanUpdates.phone = updates.phone;
+    if (updates.password) {
+      if (availableCols.includes("password")) cleanUpdates.password = updates.password;
+      if (availableCols.includes("password_hash")) cleanUpdates.password_hash = updates.password;
+    }
+    if (updates.role && availableCols.includes("role")) cleanUpdates.role = updates.role;
+    if (updates.preferences && availableCols.includes("preferences")) cleanUpdates.preferences = updates.preferences;
+    if (updates.address && availableCols.includes("address")) cleanUpdates.address = updates.address;
+    if (availableCols.includes("updated_at")) cleanUpdates.updated_at = new Date().toISOString();
+
+    // EMAIL IS STRICTLY IMMUTABLE — It cannot be modified as it represents the account primary login identity
+    delete cleanUpdates.email;
+
+    const queryField = id ? `id=eq.${encodeURIComponent(id)}` : `email=eq.${encodeURIComponent(email.trim().toLowerCase())}`;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?${queryField}`, {
+      method: "PATCH",
+      headers: { ...HEADERS, Prefer: "return=representation" },
+      body: JSON.stringify(cleanUpdates),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      return NextResponse.json({ success: false, error: errText, fallbackUpdates: cleanUpdates });
+    }
+
+    const data = await res.json();
+    return NextResponse.json({ success: true, profile: data?.[0] || updates });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  return PUT(request);
 }

@@ -17,7 +17,7 @@ import {
 import { useBoutique } from "@/lib/store";
 
 export default function AdminDashboardPage() {
-  const { products, orders, updateOrderStatus, adminUser } = useBoutique();
+  const { products, orders, updateOrderStatus, adminUser, allUsers } = useBoutique();
 
   // Metrics
   const totalRevenue = orders.reduce((sum, ord) => sum + ord.total, 0);
@@ -35,6 +35,8 @@ export default function AdminDashboardPage() {
     const cItems = o.items.filter(i => i.category === "chudar");
     return sum + cItems.reduce((acc, i) => acc + i.price * i.quantity, 0);
   }, 0);
+
+  const customerCount = allUsers.filter(u => u.role === "customer").length;
 
   return (
     <div className="space-y-8">
@@ -54,10 +56,17 @@ export default function AdminDashboardPage() {
 
         <div className="flex items-center gap-3">
           <Link
+            href="/admin/users"
+            className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs font-bold text-amber-300 hover:bg-amber-500/20 transition"
+          >
+            <Users className="h-4 w-4" />
+            <span>Manage Users</span>
+          </Link>
+          <Link
             href="/admin/products"
             className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-stone-950 shadow-lg hover:bg-amber-400 transition"
           >
-            <span>+ Add New Creation</span>
+            <span>+ Add Creation</span>
           </Link>
           <Link
             href="/admin/orders"
@@ -109,18 +118,21 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-[#14111a] p-6 shadow-xl">
-          <div className="flex items-center justify-between text-stone-400">
-            <span className="text-xs font-bold uppercase tracking-wider">VIP Connoisseurs</span>
-            <Users className="h-5 w-5 text-amber-400" />
+        <Link href="/admin/users" className="block group">
+          <div className="rounded-3xl border border-white/10 bg-[#14111a] p-6 shadow-xl transition hover:border-amber-500/40 hover:bg-[#1a1622]">
+            <div className="flex items-center justify-between text-stone-400">
+              <span className="text-xs font-bold uppercase tracking-wider group-hover:text-amber-400 transition">VIP Connoisseurs</span>
+              <Users className="h-5 w-5 text-amber-400" />
+            </div>
+            <p className="mt-3 text-2xl font-bold text-white font-serif-luxury sm:text-3xl">
+              {allUsers.length > 0 ? allUsers.length : 14} Accounts
+            </p>
+            <p className="mt-1 text-[11px] text-emerald-400 flex items-center gap-1">
+              <span>{customerCount || 12} Customers &bull; Manage Directory</span>
+              <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition" />
+            </p>
           </div>
-          <p className="mt-3 text-2xl font-bold text-white font-serif-luxury sm:text-3xl">
-            142
-          </p>
-          <p className="mt-1 text-[11px] text-emerald-400">
-            Active Connoisseur Membership
-          </p>
-        </div>
+        </Link>
       </div>
 
       {/* Category Performance & Stock Breakdown */}

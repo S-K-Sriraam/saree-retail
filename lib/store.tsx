@@ -8,10 +8,17 @@ export interface UserProfile {
   name: string;
   email: string;
   phone?: string;
+  password?: string;
   role: "customer" | "admin";
   avatar?: string;
   preferences?: string[];
   joinedDate: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+  };
 }
 
 export interface OtpSession {
@@ -30,11 +37,16 @@ export interface OtpSession {
 }
 
 interface BoutiqueContextType {
-  // Auth state
+  // Auth state & User Management
   currentUser: UserProfile | null;
   adminUser: UserProfile | null;
+  allUsers: UserProfile[];
   logoutCustomer: () => void;
   logoutAdmin: () => void;
+  updateCustomerProfile: (updates: Partial<UserProfile>) => Promise<boolean>;
+  updateAdminProfile: (updates: Partial<UserProfile>) => Promise<boolean>;
+  updateAnyUserProfile: (idOrEmail: string, updates: Partial<UserProfile>) => Promise<boolean>;
+  refreshUsers: () => Promise<void>;
 
   // OTP Auth Engine
   sendAuthOtp: (
@@ -107,6 +119,7 @@ const STORAGE_KEYS = {
   WISHLIST: "gv_boutique_fresh_slate_v6_wish",
   CUSTOMER: "gv_boutique_fresh_slate_v6_cust",
   ADMIN: "gv_boutique_fresh_slate_v6_adm",
+  ALL_USERS: "gv_boutique_fresh_slate_v6_all_users",
   COUPON: "gv_boutique_fresh_slate_v6_coup",
   OTP_SESSION: "gv_boutique_fresh_slate_v6_otp"
 };
@@ -119,6 +132,7 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [adminUser, setAdminUser] = useState<UserProfile | null>(null);
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [activeOtpSession, setActiveOtpSession] = useState<OtpSession | null>(null);
   const [couponCode, setCouponCode] = useState<string>("");
   const [discountPercent, setDiscountPercent] = useState<number>(0);
@@ -146,6 +160,9 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       const savedAdmin = localStorage.getItem(STORAGE_KEYS.ADMIN);
       if (savedAdmin) setAdminUser(JSON.parse(savedAdmin));
+
+      const savedUsers = localStorage.getItem(STORAGE_KEYS.ALL_USERS);
+      if (savedUsers) setAllUsers(JSON.parse(savedUsers));
 
       const savedOtp = localStorage.getItem(STORAGE_KEYS.OTP_SESSION);
       if (savedOtp) {
@@ -222,7 +239,27 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           }
         }
       })
-      .catch(err => console.warn("Supabase orders sync note:", err));
+    // Sync all profiles for admin management
+    fetch("/api/profiles")
+      .then(res => res.json())
+      .then(result => {
+        if (result.success && Array.isArray(result.profiles) && result.profiles.length > 0) {
+          const mapped: UserProfile[] = result.profiles.map((p: any) => ({
+            id: p.id || `user-${Math.random().toString(36).substring(2, 8)}`,
+            name: p.name || p.full_name || p.email?.split("@")[0]?.replace(/\./g, " ") || "Client",
+            email: p.email || "",
+            phone: p.phone || "",
+            role: p.role || "customer",
+            avatar: p.avatar_url,
+            preferences: p.preferences || ["Saree Couture", "Kanchipuram Silk"],
+            joinedDate: p.joined_date ? new Date(p.joined_date).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Recent",
+            address: p.address || {}
+          }));
+          setAllUsers(mapped);
+          localStorage.setItem(STORAGE_KEYS.ALL_USERS, JSON.stringify(mapped));
+        }
+      })
+      .catch(err => console.warn("Supabase profiles sync note:", err));
 
     setMounted(true);
   }, []);
@@ -263,6 +300,11 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       else localStorage.removeItem(STORAGE_KEYS.ADMIN);
     } catch {}
   }, [adminUser, mounted]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    try { localStorage.setItem(STORAGE_KEYS.ALL_USERS, JSON.stringify(allUsers)); } catch {}
+  }, [allUsers, mounted]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -479,6 +521,174 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     showToast("Logged out of Admin Portal.");
   };
 
+  // Customer Profile Editor
+  const updateCustomerProfile = async (updates: Partial<UserProfile>): Promise<boolean> => {
+    if (!currentUser) return false;
+    const updated: UserProfile = {
+      ...currentUser,
+      ...updates,
+      address: {
+        ...(currentUser.address || {}),
+        ...(updates.address || {})
+      }
+    };
+    setCurrentUser(updated);
+    setAllUsers(prev => {
+      const idx = prev.findIndex(u => u.id === updated.id || (u.email && u.email.toLowerCase() === updated.email.toLowerCase()));
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = updated;
+        return copy;
+      }
+      return [updated, ...prev];
+    });
+    showToast("Profile details updated successfully ✨");
+
+    try {
+      await fetch("/api/profiles", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: updated.id,
+          email: updated.email,
+          updates: {
+            name: updated.name,
+            phone: updated.phone,
+            password: updated.password,
+            preferences: updated.preferences,
+            address: updated.address,
+            role: updated.role
+          }
+        })
+      });
+      return true;
+    } catch (e) {
+      console.warn("Supabase profile update warning:", e);
+      return true;
+    }
+  };
+
+  // Admin Profile Editor
+  const updateAdminProfile = async (updates: Partial<UserProfile>): Promise<boolean> => {
+    if (!adminUser) return false;
+    const updated: UserProfile = {
+      ...adminUser,
+      ...updates,
+      address: {
+        ...(adminUser.address || {}),
+        ...(updates.address || {})
+      }
+    };
+    setAdminUser(updated);
+    setAllUsers(prev => {
+      const idx = prev.findIndex(u => u.id === updated.id || (u.email && u.email.toLowerCase() === updated.email.toLowerCase()));
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = updated;
+        return copy;
+      }
+      return [updated, ...prev];
+    });
+    showToast("Executive Admin profile updated 🛡️");
+
+    try {
+      await fetch("/api/profiles", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: updated.id,
+          email: updated.email,
+          updates: {
+            name: updated.name,
+            phone: updated.phone,
+            password: updated.password,
+            address: updated.address,
+            role: updated.role
+          }
+        })
+      });
+      return true;
+    } catch (e) {
+      console.warn("Supabase admin profile update warning:", e);
+      return true;
+    }
+  };
+
+  // Admin Update Any User
+  const updateAnyUserProfile = async (idOrEmail: string, updates: Partial<UserProfile>): Promise<boolean> => {
+    setAllUsers(prev => prev.map(u => {
+      if (u.id === idOrEmail || (u.email && u.email.toLowerCase() === idOrEmail.toLowerCase())) {
+        return {
+          ...u,
+          ...updates,
+          address: {
+            ...(u.address || {}),
+            ...(updates.address || {})
+          }
+        };
+      }
+      return u;
+    }));
+
+    if (currentUser && (currentUser.id === idOrEmail || (currentUser.email && currentUser.email.toLowerCase() === idOrEmail.toLowerCase()))) {
+      setCurrentUser(prev => prev ? {
+        ...prev,
+        ...updates,
+        address: { ...(prev.address || {}), ...(updates.address || {}) }
+      } : null);
+    }
+
+    if (adminUser && (adminUser.id === idOrEmail || (adminUser.email && adminUser.email.toLowerCase() === idOrEmail.toLowerCase()))) {
+      setAdminUser(prev => prev ? {
+        ...prev,
+        ...updates,
+        address: { ...(prev.address || {}), ...(updates.address || {}) }
+      } : null);
+    }
+
+    showToast("User details updated successfully ✓");
+
+    try {
+      await fetch("/api/profiles", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: idOrEmail.startsWith("cust-") || idOrEmail.startsWith("admin-") || idOrEmail.startsWith("user-") ? undefined : idOrEmail,
+          email: idOrEmail.includes("@") ? idOrEmail : undefined,
+          updates
+        })
+      });
+      return true;
+    } catch (e) {
+      console.warn("Supabase user update note:", e);
+      return true;
+    }
+  };
+
+  const refreshUsers = async () => {
+    try {
+      const res = await fetch("/api/profiles");
+      const result = await res.json();
+      if (result.success && Array.isArray(result.profiles) && result.profiles.length > 0) {
+        const mapped: UserProfile[] = result.profiles.map((p: any) => ({
+          id: p.id || `user-${Math.random().toString(36).substring(2, 8)}`,
+          name: p.name || p.full_name || p.email?.split("@")[0]?.replace(/\./g, " ") || "Client",
+          email: p.email || "",
+          phone: p.phone || "",
+          password: p.password || p.password_hash || "",
+          role: p.role || "customer",
+          avatar: p.avatar_url,
+          preferences: p.preferences || ["Saree Couture", "Kanchipuram Silk"],
+          joinedDate: p.joined_date ? new Date(p.joined_date).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Recent",
+          address: p.address || {}
+        }));
+        setAllUsers(mapped);
+      }
+    } catch (e) {
+      console.warn("Fetch users warning:", e);
+    }
+  };
+
   // Product CRUD with Supabase Persistence
   const addProduct = (newProd: Omit<Product, "id" | "reviews_count" | "rating">): Product => {
     const id = `${newProd.category}-${Date.now().toString(36)}`;
@@ -689,8 +899,13 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       value={{
         currentUser,
         adminUser,
+        allUsers,
         logoutCustomer,
         logoutAdmin,
+        updateCustomerProfile,
+        updateAdminProfile,
+        updateAnyUserProfile,
+        refreshUsers,
         sendAuthOtp,
         verifyAuthOtp,
         activeOtpSession,

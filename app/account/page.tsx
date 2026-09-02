@@ -21,7 +21,17 @@ import {
   XCircle,
   AlertCircle,
   X,
-  Ban
+  Ban,
+  Edit3,
+  Check,
+  Save,
+  Phone,
+  Mail,
+  Home,
+  Lock,
+  Eye,
+  EyeOff,
+  Shield
 } from "lucide-react";
 import { useBoutique } from "@/lib/store";
 import { Order } from "@/lib/mock-data";
@@ -32,6 +42,7 @@ export default function AccountPage() {
   const { 
     currentUser, 
     logoutCustomer, 
+    updateCustomerProfile,
     orders, 
     cancelOrder,
     wishlist, 
@@ -39,8 +50,77 @@ export default function AccountPage() {
     addToCart 
   } = useBoutique();
 
-  const [activeTab, setActiveTab] = useState<"orders" | "wishlist" | "addresses" | "vip">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "wishlist" | "profile" | "vip">("orders");
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Edit Form State
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+  const [editConfirmPassword, setEditConfirmPassword] = useState("");
+  const [showEditPassword, setShowEditPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [editStreet, setEditStreet] = useState("");
+  const [editCity, setEditCity] = useState("");
+  const [editState, setEditState] = useState("");
+  const [editPincode, setEditPincode] = useState("");
+  const [editPreferences, setEditPreferences] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const openEditModal = () => {
+    if (!currentUser) return;
+    setEditName(currentUser.name || "");
+    setEditPhone(currentUser.phone || "");
+    setEditPassword("");
+    setEditConfirmPassword("");
+    setPasswordError("");
+    setEditStreet(currentUser.address?.street || "");
+    setEditCity(currentUser.address?.city || "");
+    setEditState(currentUser.address?.state || "");
+    setEditPincode(currentUser.address?.pincode || "");
+    setEditPreferences(currentUser.preferences || ["Saree Couture", "Kanchipuram Silk"]);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    if (editPassword) {
+      if (editPassword.length < 4) {
+        setPasswordError("Password must be at least 4 characters.");
+        return;
+      }
+      if (editPassword !== editConfirmPassword) {
+        setPasswordError("Passwords do not match. Please recheck.");
+        return;
+      }
+    }
+
+    setPasswordError("");
+    setIsSaving(true);
+    await updateCustomerProfile({
+      name: editName.trim(),
+      phone: editPhone.trim(),
+      ...(editPassword ? { password: editPassword } : {}),
+      preferences: editPreferences,
+      address: {
+        street: editStreet.trim(),
+        city: editCity.trim(),
+        state: editState.trim(),
+        pincode: editPincode.trim()
+      }
+    });
+    setIsSaving(false);
+    setIsEditModalOpen(false);
+  };
+
+  const togglePreference = (pref: string) => {
+    setEditPreferences(prev => 
+      prev.includes(pref) ? prev.filter(p => p !== pref) : [...prev, pref]
+    );
+  };
 
   // If not logged in, prompt user to sign in
   if (!currentUser) {
@@ -118,6 +198,14 @@ export default function AccountPage() {
 
             <div className="flex items-center gap-3">
               <button
+                onClick={openEditModal}
+                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-stone-950 shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                <span>Edit Profile Details</span>
+              </button>
+
+              <button
                 onClick={() => {
                   logoutCustomer();
                   router.push("/auth/login");
@@ -157,6 +245,18 @@ export default function AccountPage() {
           >
             <Heart className="h-4 w-4" />
             <span>Saved Wishlist ({wishlistedProducts.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition shrink-0 ${
+              activeTab === "profile"
+                ? "bg-stone-900 text-white shadow"
+                : "text-stone-600 hover:bg-stone-200/60"
+            }`}
+          >
+            <User className="h-4 w-4" />
+            <span>My Profile & Addresses</span>
           </button>
 
           <button
@@ -353,7 +453,129 @@ export default function AccountPage() {
           </div>
         )}
 
-        {/* TAB 3: VIP REWARDS */}
+        {/* TAB 3: MY PROFILE & ADDRESSES */}
+        {activeTab === "profile" && (
+          <div className="mt-8 space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Account Personal Details Card */}
+              <div className="rounded-3xl border border-amber-900/15 bg-white p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-stone-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100/60 text-amber-800">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-stone-900 font-serif-luxury">Personal Details</h3>
+                      <p className="text-[11px] text-stone-500">Your Connoisseur account identity</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={openEditModal}
+                    className="flex items-center gap-1.5 rounded-xl border border-amber-600/30 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 transition"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" />
+                    <span>Edit</span>
+                  </button>
+                </div>
+
+                <div className="space-y-4 text-xs">
+                  <div>
+                    <span className="block text-[11px] text-stone-400 font-medium">Full Legal Name</span>
+                    <span className="font-bold text-stone-900 text-sm">{currentUser.name}</span>
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] text-stone-400 font-medium">Email Address (Registered Login)</span>
+                    <span className="font-semibold text-stone-800">{currentUser.email}</span>
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] text-stone-400 font-medium">Primary Contact Phone</span>
+                    <span className="font-semibold text-stone-800">
+                      {currentUser.phone || <em className="text-stone-400 not-italic">No phone added yet &bull; Click Edit to add</em>}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] text-stone-400 font-medium">Membership Tier</span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-bold text-amber-900 mt-1">
+                      <Sparkles className="h-3 w-3 text-amber-600" /> VIP Connoisseur (Joined {currentUser.joinedDate})
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Delivery Address Card */}
+              <div className="rounded-3xl border border-amber-900/15 bg-white p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-stone-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100/60 text-amber-800">
+                      <Home className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-stone-900 font-serif-luxury">Primary Delivery Address</h3>
+                      <p className="text-[11px] text-stone-500">Default dispatch destination for orders</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={openEditModal}
+                    className="flex items-center gap-1.5 rounded-xl border border-amber-600/30 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 transition"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" />
+                    <span>Update</span>
+                  </button>
+                </div>
+
+                <div className="space-y-4 text-xs">
+                  {currentUser.address?.street || currentUser.address?.city ? (
+                    <div className="space-y-2 rounded-2xl bg-stone-50 p-4 border border-stone-200">
+                      <p className="font-bold text-stone-900">{currentUser.name}</p>
+                      <p className="text-stone-600">{currentUser.address.street}</p>
+                      <p className="text-stone-600">
+                        {[currentUser.address.city, currentUser.address.state].filter(Boolean).join(", ")}
+                        {currentUser.address.pincode && ` - ${currentUser.address.pincode}`}
+                      </p>
+                      {currentUser.phone && (
+                        <p className="text-[11px] text-stone-500 pt-1">Phone: {currentUser.phone}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-stone-300 p-6 text-center">
+                      <MapPin className="mx-auto h-8 w-8 text-stone-400 mb-2" />
+                      <p className="font-bold text-stone-800 text-xs">No Shipping Address Saved</p>
+                      <p className="text-[11px] text-stone-500 mt-0.5">Add your address for faster 1-click checkout.</p>
+                      <button
+                        onClick={openEditModal}
+                        className="mt-3 inline-flex items-center gap-1 rounded-xl bg-stone-900 px-4 py-1.5 text-xs font-bold text-white hover:bg-amber-800"
+                      >
+                        + Add Delivery Address
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Style Preferences */}
+                  <div className="border-t border-stone-100 pt-4">
+                    <span className="block text-[11px] text-stone-400 font-medium mb-2">Artisan & Style Preferences</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(currentUser.preferences && currentUser.preferences.length > 0
+                        ? currentUser.preferences
+                        : ["Saree Couture", "Kanchipuram Silk"]
+                      ).map((pref) => (
+                        <span key={pref} className="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-semibold text-stone-700">
+                          {pref}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: VIP REWARDS */}
         {activeTab === "vip" && (
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-amber-500/15 to-amber-900/10 p-6 shadow-sm">
@@ -393,6 +615,238 @@ export default function AccountPage() {
           </div>
         )}
       </div>
+
+      {/* Edit Customer Profile Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md animate-in fade-in">
+          <div className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-3xl border border-amber-900/20 bg-white p-6 sm:p-8 text-stone-900 shadow-2xl">
+            <button
+              onClick={() => setIsEditModalOpen(false)}
+              className="absolute top-6 right-6 text-stone-400 hover:text-stone-700"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-stone-100 pb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-900">
+                <Edit3 className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold font-serif-luxury text-stone-900">
+                  Edit Connoisseur Profile
+                </h2>
+                <p className="text-xs text-stone-500">
+                  Update your contact details, delivery address, and style preferences.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="mt-6 space-y-4 text-xs">
+              {/* Personal Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-stone-700">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="e.g. Radhika Sundaram"
+                    className="mt-1 w-full rounded-xl border border-stone-300 bg-stone-50 p-2.5 text-stone-900 outline-none focus:border-amber-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-stone-700">Contact Phone</label>
+                  <input
+                    type="tel"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    placeholder="e.g. +91 98765 43210"
+                    className="mt-1 w-full rounded-xl border border-stone-300 bg-stone-50 p-2.5 text-stone-900 outline-none focus:border-amber-600"
+                  />
+                </div>
+              </div>
+
+              {/* Email Address - Permanent */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className="block font-semibold text-stone-700">Account Email ID</label>
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full">
+                    <Lock className="h-3 w-3 text-stone-400" /> Permanent Login ID &bull; Cannot be changed
+                  </span>
+                </div>
+                <input
+                  type="email"
+                  disabled
+                  value={currentUser.email}
+                  className="mt-1 w-full rounded-xl border border-stone-200 bg-stone-100 p-2.5 text-stone-500 cursor-not-allowed font-medium opacity-80"
+                />
+              </div>
+
+              {/* Password Change Section */}
+              <div className="border-t border-stone-100 pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold uppercase tracking-wider text-[11px] text-amber-900 flex items-center gap-1.5">
+                    <Lock className="h-3.5 w-3.5" /> Security & Account Password
+                  </h4>
+                  <span className="text-[10px] text-stone-400">Leave blank to keep current password</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-stone-700">New Password</label>
+                    <div className="relative mt-1">
+                      <input
+                        type={showEditPassword ? "text" : "password"}
+                        value={editPassword}
+                        onChange={(e) => {
+                          setEditPassword(e.target.value);
+                          setPasswordError("");
+                        }}
+                        placeholder="Enter new password (optional)"
+                        className="w-full rounded-xl border border-stone-300 bg-stone-50 p-2.5 pr-9 text-stone-900 outline-none focus:border-amber-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowEditPassword(!showEditPassword)}
+                        className="absolute right-3 top-3 text-stone-400 hover:text-stone-700"
+                      >
+                        {showEditPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-stone-700">Confirm New Password</label>
+                    <input
+                      type={showEditPassword ? "text" : "password"}
+                      value={editConfirmPassword}
+                      onChange={(e) => {
+                        setEditConfirmPassword(e.target.value);
+                        setPasswordError("");
+                      }}
+                      placeholder="Repeat new password"
+                      className="mt-1 w-full rounded-xl border border-stone-300 bg-stone-50 p-2.5 text-stone-900 outline-none focus:border-amber-600"
+                    />
+                  </div>
+                </div>
+
+                {passwordError && (
+                  <p className="text-xs text-rose-600 font-semibold bg-rose-50 border border-rose-200 p-2 rounded-xl">
+                    {passwordError}
+                  </p>
+                )}
+              </div>
+
+              {/* Address Fields */}
+              <div className="border-t border-stone-100 pt-4 space-y-3">
+                <h4 className="font-bold uppercase tracking-wider text-[11px] text-amber-900 flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5" /> Primary Delivery Destination
+                </h4>
+
+                <div>
+                  <label className="block font-semibold text-stone-700">Street Address / Apartment</label>
+                  <input
+                    type="text"
+                    value={editStreet}
+                    onChange={(e) => setEditStreet(e.target.value)}
+                    placeholder="e.g. 42, Lotus Villa, 4th Cross, Indiranagar"
+                    className="mt-1 w-full rounded-xl border border-stone-300 bg-stone-50 p-2.5 text-stone-900 outline-none focus:border-amber-600"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-semibold text-stone-700">City</label>
+                    <input
+                      type="text"
+                      value={editCity}
+                      onChange={(e) => setEditCity(e.target.value)}
+                      placeholder="e.g. Bengaluru"
+                      className="mt-1 w-full rounded-xl border border-stone-300 bg-stone-50 p-2.5 text-stone-900 outline-none focus:border-amber-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-stone-700">State</label>
+                    <input
+                      type="text"
+                      value={editState}
+                      onChange={(e) => setEditState(e.target.value)}
+                      placeholder="e.g. Karnataka"
+                      className="mt-1 w-full rounded-xl border border-stone-300 bg-stone-50 p-2.5 text-stone-900 outline-none focus:border-amber-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-stone-700">PIN Code</label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={editPincode}
+                      onChange={(e) => setEditPincode(e.target.value)}
+                      placeholder="560038"
+                      className="mt-1 w-full rounded-xl border border-stone-300 bg-stone-50 p-2.5 text-stone-900 outline-none focus:border-amber-600"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Style Preferences */}
+              <div className="border-t border-stone-100 pt-4 space-y-2">
+                <label className="block font-semibold text-stone-700">Preferred Handloom Styles</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    "Saree Couture",
+                    "Chudar & Salwar",
+                    "Kanchipuram Silk",
+                    "Banarasi Silk",
+                    "Tissue Organza",
+                    "Anarkali Suits",
+                    "Velvet Salwar"
+                  ].map((pref) => {
+                    const selected = editPreferences.includes(pref);
+                    return (
+                      <button
+                        type="button"
+                        key={pref}
+                        onClick={() => togglePreference(pref)}
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                          selected
+                            ? "bg-amber-800 text-white shadow"
+                            : "border border-stone-300 bg-stone-50 text-stone-700 hover:bg-stone-100"
+                        }`}
+                      >
+                        {selected ? "✓ " : "+ "}{pref}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-6 border-t border-stone-100">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="rounded-xl border border-stone-300 px-4 py-2 text-stone-600 hover:bg-stone-50"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="flex items-center gap-1.5 rounded-xl bg-stone-950 px-6 py-2 font-bold text-white shadow hover:bg-amber-800 transition disabled:opacity-50"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{isSaving ? "Saving..." : "Save Profile Details"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Cancel Order Confirmation Modal */}
       {orderToCancel && (
