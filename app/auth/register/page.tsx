@@ -84,7 +84,7 @@ export default function CustomerRegisterPage() {
     setTimeout(() => {
       const res = verifyAuthOtp(email, otp);
       if (res.success) {
-        router.push("/account");
+        router.push("/");
       } else {
         setError(res.error || "OTP verification failed.");
         setIsVerifying(false);

@@ -33,7 +33,7 @@ export default function CustomerLoginPage() {
 
     try {
       loginCustomerDirect(email.trim());
-      router.push("/account");
+      router.push("/");
     } catch (err: any) {
       setError(err.message || "Failed to sign in. Please check your credentials.");
       setIsLoading(false);
