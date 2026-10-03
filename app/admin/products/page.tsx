@@ -94,7 +94,7 @@ export default function AdminProductsPage() {
     if (!formName) return;
 
     const parsedPrice = parseFloat(formPrice);
-    const validPrice = isNaN(parsedPrice) ? 0.0 : Math.min(200, Math.max(0, parsedPrice));
+    const validPrice = isNaN(parsedPrice) ? 0.0 : Math.min(10000, Math.max(0, parsedPrice));
 
     if (editingProduct) {
       updateProduct(editingProduct.id, {
@@ -394,13 +394,13 @@ export default function AdminProductsPage() {
                 <div>
                   <div className="flex items-center justify-between">
                     <label className="block font-semibold text-stone-300">Stock Price (Rs.)</label>
-                    <span className="text-[10px] font-normal text-amber-400">Max Rs. 200.00</span>
+                    <span className="text-[10px] font-normal text-amber-400">Max Rs. 10000.00</span>
                   </div>
                   <input
                     type="number"
                     step="0.01"
                     min="0"
-                    max="200"
+                    max="10000"
                     value={formPrice}
                     onChange={(e) => setFormPrice(e.target.value)}
                     placeholder="0.0"
