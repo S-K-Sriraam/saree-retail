@@ -15,6 +15,33 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  // Available color choices for this garment
+  const availableColors = React.useMemo(() => {
+    const list: Array<{ name: string; color_code: string; image: string }> = [];
+    if (product.color) {
+      list.push({
+        name: product.color,
+        color_code: product.color_code || "#881337",
+        image: product.images[0] || "/images/placeholder.jpg"
+      });
+    }
+    if (product.color_variants && product.color_variants.length > 0) {
+      product.color_variants.forEach(v => {
+        if (v.name && !list.some(item => item.name.toLowerCase() === v.name.toLowerCase())) {
+          list.push({
+            name: v.name,
+            color_code: v.color_code || "#1e3a8a",
+            image: v.image || product.images[0] || "/images/placeholder.jpg"
+          });
+        }
+      });
+    }
+    return list;
+  }, [product]);
+
+  const [activeColor, setActiveColor] = useState<string>(product.color || "Default");
+  const [colorImageOverride, setColorImageOverride] = useState<string | null>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -25,7 +52,20 @@ export default function ProductCard({ product }: ProductCardProps) {
     ? Math.round(((product.compare_price - product.base_price) / product.compare_price) * 100)
     : 0;
 
-  const displayImage = isHovered && product.images[1] ? product.images[1] : product.images[0];
+  const displayImage = colorImageOverride || (isHovered && product.images[1] ? product.images[1] : product.images[0]);
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const matched = availableColors.find(c => c.name.toLowerCase() === activeColor.toLowerCase());
+    addToCart(
+      product,
+      1,
+      undefined,
+      activeColor,
+      colorImageOverride || matched?.image || product.images[0]
+    );
+  };
 
   return (
     <div
@@ -92,7 +132,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           <button
             suppressHydrationWarning
-            onClick={() => addToCart(product, 1)}
+            onClick={handleQuickAdd}
             className="flex items-center justify-center rounded-xl bg-stone-950 px-3.5 py-2.5 text-white shadow-lg transition hover:bg-amber-700"
             title="Quick Add to Bag"
           >
@@ -129,6 +169,44 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Fabric info */}
         <p className="mt-1 text-xs text-stone-500 line-clamp-1">{product.fabric}</p>
 
+        {/* Color Swatch Dot Previews (Amazon Style) */}
+        {availableColors.length > 1 && (
+          <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+            {availableColors.map((col, idx) => {
+              const isActive = activeColor.toLowerCase() === col.name.toLowerCase();
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActiveColor(col.name);
+                    if (col.image) setColorImageOverride(col.image);
+                  }}
+                  onMouseEnter={() => {
+                    if (col.image) setColorImageOverride(col.image);
+                  }}
+                  onMouseLeave={() => {
+                    const activeMatch = availableColors.find(c => c.name.toLowerCase() === activeColor.toLowerCase());
+                    setColorImageOverride(activeMatch?.image || null);
+                  }}
+                  className={`h-4 w-4 rounded-full border transition-all ${
+                    isActive
+                      ? "ring-2 ring-amber-600 ring-offset-1 border-white scale-110 shadow-sm"
+                      : "border-black/20 hover:scale-110 opacity-75 hover:opacity-100"
+                  }`}
+                  style={{ backgroundColor: col.color_code }}
+                  title={`${col.name} (Hover/Click to preview)`}
+                />
+              );
+            })}
+            <span className="text-[10px] font-semibold text-stone-500 ml-0.5">
+              {availableColors.length} colors
+            </span>
+          </div>
+        )}
+
         {/* Price and CTA */}
         <div className="mt-3 flex items-baseline justify-between border-t border-stone-100 pt-3">
           <div className="flex items-baseline gap-2">
@@ -144,7 +222,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           <button
             suppressHydrationWarning
-            onClick={() => addToCart(product, 1)}
+            onClick={handleQuickAdd}
             className="text-xs font-bold text-amber-800 hover:text-amber-950 hover:underline transition"
           >
             + Add to Bag

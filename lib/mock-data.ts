@@ -1,3 +1,10 @@
+export interface ColorVariant {
+  name: string;
+  color_code: string;
+  image: string;
+  images?: string[];
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -11,6 +18,7 @@ export interface Product {
   work_type?: string;
   color: string;
   color_code: string;
+  color_variants?: ColorVariant[];
   description: string;
   short_description: string;
   sku: string;

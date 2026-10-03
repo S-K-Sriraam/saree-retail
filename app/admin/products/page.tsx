@@ -15,10 +15,11 @@ import {
   ArrowUpDown,
   Filter,
   Upload,
-  ImageIcon
+  ImageIcon,
+  Palette
 } from "lucide-react";
 import { useBoutique } from "@/lib/store";
-import { Product } from "@/lib/mock-data";
+import { Product, ColorVariant } from "@/lib/mock-data";
 
 export default function AdminProductsPage() {
   const { products, addProduct, updateProduct, deleteProduct } = useBoutique();
@@ -39,6 +40,7 @@ export default function AdminProductsPage() {
   const [formStock, setFormStock] = useState<number>(10);
   const [formImageUrl, setFormImageUrl] = useState("");
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [colorVariants, setColorVariants] = useState<ColorVariant[]>([]);
   const [formShortDesc, setFormShortDesc] = useState("Authentic handcrafted heirloom with pure zari pallu.");
   const [formPreset, setFormPreset] = useState<"kanchipuram" | "banarasi" | "organza" | "velvet" | "chiffon">("kanchipuram");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -55,6 +57,34 @@ export default function AdminProductsPage() {
     reader.readAsDataURL(file);
   };
 
+  const addColorVariant = () => {
+    setColorVariants(prev => [
+      ...prev,
+      { name: "", color_code: "#1e3a8a", image: "" }
+    ]);
+  };
+
+  const updateColorVariant = (index: number, field: keyof ColorVariant, value: any) => {
+    setColorVariants(prev => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], [field]: value };
+      return copy;
+    });
+  };
+
+  const removeColorVariant = (index: number) => {
+    setColorVariants(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleVariantImageUpload = (index: number, file: File) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      updateColorVariant(index, "image", dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const openAddModal = () => {
     setEditingProduct(null);
     setFormName("");
@@ -67,6 +97,7 @@ export default function AdminProductsPage() {
     setFormStock(10);
     setFormImageUrl("");
     setImagePreview("");
+    setColorVariants([]);
     setFormShortDesc("Heirloom pure handloom with traditional border and rich pallu.");
     setFormPreset("kanchipuram");
     setIsAddModalOpen(true);
@@ -79,11 +110,12 @@ export default function AdminProductsPage() {
     setFormPrice(p.base_price !== undefined ? p.base_price.toString() : "0.0");
     setFormFabric(p.fabric);
     setFormColor(p.color);
-    setFormColorCode(p.color_code);
+    setFormColorCode(p.color_code || "#881337");
     setFormSku(p.sku);
     setFormStock(p.stock);
     setFormImageUrl(p.images[0] || "");
     setImagePreview(p.images[0] || "");
+    setColorVariants(p.color_variants || []);
     setFormShortDesc(p.short_description);
     setFormPreset(p.three_d_preset || "kanchipuram");
     setIsAddModalOpen(true);
@@ -95,6 +127,12 @@ export default function AdminProductsPage() {
 
     const parsedPrice = parseFloat(formPrice);
     const validPrice = isNaN(parsedPrice) ? 0.0 : Math.min(10000, Math.max(0, parsedPrice));
+    const validVariants = colorVariants.filter(v => v.name.trim() !== "");
+
+    // Build complete images array with primary image and color variant images
+    const variantImages = validVariants.map(v => v.image).filter(Boolean);
+    const allImages = Array.from(new Set([formImageUrl, ...variantImages].filter(Boolean)));
+    if (allImages.length === 0) allImages.push("/images/placeholder.jpg");
 
     if (editingProduct) {
       updateProduct(editingProduct.id, {
@@ -104,9 +142,10 @@ export default function AdminProductsPage() {
         fabric: formFabric,
         color: formColor,
         color_code: formColorCode,
+        color_variants: validVariants,
         sku: formSku,
         stock: Number(formStock),
-        images: [formImageUrl, ...editingProduct.images.slice(1)],
+        images: allImages,
         short_description: formShortDesc,
         three_d_preset: formPreset
       });
@@ -119,9 +158,10 @@ export default function AdminProductsPage() {
         fabric: formFabric,
         color: formColor,
         color_code: formColorCode,
+        color_variants: validVariants,
         sku: formSku,
         stock: Number(formStock),
-        images: [formImageUrl],
+        images: allImages,
         description: `${formName}. Handcrafted in ${formFabric} with fine artisanal needlework and opulent drape.`,
         short_description: formShortDesc,
         is_featured: true,
@@ -270,7 +310,24 @@ export default function AdminProductsPage() {
 
                   <td className="p-4 text-stone-300">
                     <p className="line-clamp-1">{product.fabric}</p>
-                    <p className="text-[10px] text-stone-500">{product.color}</p>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      <span
+                        className="inline-block h-3.5 w-3.5 rounded-full border border-white/40 shadow-sm"
+                        style={{ backgroundColor: product.color_code || "#881337" }}
+                        title={`Base Color: ${product.color}`}
+                      />
+                      {product.color_variants && product.color_variants.map((v, i) => (
+                        <span
+                          key={i}
+                          className="inline-block h-3.5 w-3.5 rounded-full border border-white/40 shadow-sm"
+                          style={{ backgroundColor: v.color_code || "#1e3a8a" }}
+                          title={`Color Variant: ${v.name}`}
+                        />
+                      ))}
+                      <span className="text-[10px] text-stone-400">
+                        {product.color} {product.color_variants && product.color_variants.length > 0 ? `(+${product.color_variants.length} colors)` : ""}
+                      </span>
+                    </div>
                   </td>
 
                   <td className="p-4 font-bold text-white">
@@ -515,6 +572,112 @@ export default function AdminProductsPage() {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Multi-Color Variants (Amazon Style) */}
+              <div className="rounded-2xl border border-amber-500/20 bg-white/5 p-4 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                      <Palette className="h-4 w-4 text-amber-400" /> Color Choices & Swatches (Amazon Style)
+                    </h3>
+                    <p className="text-[11px] text-stone-400 mt-0.5">
+                      Add different color variants (e.g. Red, Blue, Green). Customers clicking a color will immediately see its photo!
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addColorVariant}
+                    className="flex items-center gap-1 rounded-xl bg-amber-500/20 border border-amber-500/40 px-3 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-500 hover:text-stone-950 transition shrink-0"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Add Color Variant</span>
+                  </button>
+                </div>
+
+                {colorVariants.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-white/10 p-4 text-center text-xs text-stone-400">
+                    <p className="text-stone-300 font-medium">Currently only primary color ({formColor || "Base Color"}) is active.</p>
+                    <p className="text-[10px] text-stone-500 mt-1">Click &quot;+ Add Color Variant&quot; above to add more shades with their respective photos.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 pt-1">
+                    {colorVariants.map((variant, idx) => (
+                      <div key={idx} className="rounded-2xl border border-white/10 bg-[#16121f] p-3.5 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                            <span className="h-2 w-2 rounded-full bg-amber-400" /> Color Option #{idx + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeColorVariant(idx)}
+                            className="flex items-center gap-1 text-[11px] text-stone-400 hover:text-rose-400 transition"
+                            title="Remove this color variant"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span>Remove</span>
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-semibold text-stone-300">Color Name & Swatch</label>
+                            <div className="flex items-center gap-2 mt-1">
+                              <input
+                                type="color"
+                                value={variant.color_code || "#1e3a8a"}
+                                onChange={(e) => updateColorVariant(idx, "color_code", e.target.value)}
+                                className="h-9 w-9 cursor-pointer rounded-xl border border-white/20 bg-transparent p-0.5"
+                                title="Click to pick swatch color"
+                              />
+                              <input
+                                type="text"
+                                value={variant.name}
+                                onChange={(e) => updateColorVariant(idx, "name", e.target.value)}
+                                placeholder="e.g. Royal Sapphire Blue"
+                                required
+                                className="flex-1 rounded-xl border border-white/15 bg-white/5 p-2 text-xs text-white outline-none focus:border-amber-400"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-semibold text-stone-300">Photo for this Color</label>
+                            <div className="flex items-center gap-2 mt-1">
+                              {variant.image ? (
+                                <img
+                                  src={variant.image}
+                                  alt=""
+                                  className="h-9 w-9 rounded-xl object-cover border border-amber-500/40 shrink-0"
+                                />
+                              ) : (
+                                <div className="h-9 w-9 rounded-xl border border-dashed border-white/20 flex items-center justify-center text-stone-500 shrink-0 bg-white/5">
+                                  <ImageIcon className="h-4 w-4" />
+                                </div>
+                              )}
+                              <input
+                                type="file"
+                                id={`variant-file-${idx}`}
+                                accept="image/png,image/jpeg,image/jpg,image/webp"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleVariantImageUpload(idx, file);
+                                }}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor={`variant-file-${idx}`}
+                                className="cursor-pointer rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-stone-200 hover:bg-white/20 transition flex-1 text-center truncate"
+                              >
+                                {variant.image ? "Change Photo ✓" : "Upload Color Photo"}
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>

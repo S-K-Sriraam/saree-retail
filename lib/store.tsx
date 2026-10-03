@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { Product, Order, OrderItem, INITIAL_PRODUCTS, INITIAL_ORDERS } from "./mock-data";
+import { Product, Order, OrderItem, ColorVariant, INITIAL_PRODUCTS, INITIAL_ORDERS } from "./mock-data";
 
 export interface UserProfile {
   id: string;
@@ -76,7 +76,13 @@ interface BoutiqueContextType {
 
   // Cart
   cart: OrderItem[];
-  addToCart: (product: Product, quantity?: number, customization?: OrderItem["customization"], selectedColor?: string) => void;
+  addToCart: (
+    product: Product,
+    quantity?: number,
+    customization?: OrderItem["customization"],
+    selectedColor?: string,
+    selectedImage?: string
+  ) => void;
   updateCartQuantity: (id: string, quantity: number) => void;
   removeFromCart: (id: string) => void;
   clearCart: () => void;
@@ -741,11 +747,21 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     product: Product,
     quantity = 1,
     customization?: OrderItem["customization"],
-    selectedColor?: string
+    selectedColor?: string,
+    selectedImage?: string
   ) => {
     setCart(prev => {
-      const itemId = `${product.id}-${customization?.size || "standard"}-${customization?.type || "unstitched"}`;
+      const colorVal = selectedColor || product.color || "Default";
+      const colorKey = colorVal.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const itemId = `${product.id}-${colorKey}-${customization?.size || "standard"}-${customization?.type || "unstitched"}`;
       const existing = prev.find(item => item.id === itemId);
+
+      // Match color variant image if not explicitly provided
+      const matchedVariant = product.color_variants?.find(
+        v => v.name.toLowerCase() === colorVal.toLowerCase()
+      );
+      const itemImage = selectedImage || matchedVariant?.image || product.images[0] || "/images/placeholder.jpg";
+
       if (existing) {
         return prev.map(item => item.id === itemId ? { ...item, quantity: item.quantity + quantity } : item);
       } else {
@@ -754,16 +770,16 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           productId: product.id,
           productName: product.name,
           category: product.category,
-          image: product.images[0] || "/images/placeholder.jpg",
+          image: itemImage,
           price: product.base_price,
           quantity,
-          selectedColor: selectedColor || product.color,
+          selectedColor: colorVal,
           customization
         };
         return [...prev, newItem];
       }
     });
-    showToast(`Added ${product.name} to Cart`);
+    showToast(`Added ${product.name} (${selectedColor || product.color}) to Cart`);
     setIsCartDrawerOpen(true);
   };
 

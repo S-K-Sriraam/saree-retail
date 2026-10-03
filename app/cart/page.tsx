@@ -136,7 +136,12 @@ export default function CartPage() {
                       </div>
 
                       {/* Customization Details */}
-                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-stone-600">
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-stone-600">
+                        {item.selectedColor && (
+                          <span className="rounded-lg bg-amber-50 border border-amber-900/15 text-amber-950 px-2 py-0.5 font-bold">
+                            Color: {item.selectedColor}
+                          </span>
+                        )}
                         {item.customization?.size && (
                           <span className="rounded-lg bg-stone-100 px-2 py-0.5 font-medium">
                             Size: <strong>{item.customization.size}</strong>

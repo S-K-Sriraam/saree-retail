@@ -9,18 +9,67 @@ export default function QuickViewModal() {
   const { quickViewProduct, setQuickViewProduct, addToCart, toggleWishlist, isWishlisted } = useBoutique();
 
   const [selectedImage, setSelectedImage] = useState<number>(0);
+  const [colorImageOverride, setColorImageOverride] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedSize, setSelectedSize] = useState<string>("M");
   const [customStitching, setCustomStitching] = useState<boolean>(false);
   const [fallPico, setFallPico] = useState<boolean>(true);
   const [bottomStyle, setBottomStyle] = useState<string>("Chudar");
 
-  if (!quickViewProduct) return null;
-
   const product = quickViewProduct;
+
+  // Available Color Choices (Base + Variants)
+  const availableColors = React.useMemo(() => {
+    if (!product) return [];
+    const list: Array<{ name: string; color_code: string; image: string }> = [];
+    if (product.color) {
+      list.push({
+        name: product.color,
+        color_code: product.color_code || "#881337",
+        image: product.images[0] || "/images/placeholder.jpg"
+      });
+    }
+    if (product.color_variants && product.color_variants.length > 0) {
+      product.color_variants.forEach(v => {
+        if (v.name && !list.some(item => item.name.toLowerCase() === v.name.toLowerCase())) {
+          list.push({
+            name: v.name,
+            color_code: v.color_code || "#1e3a8a",
+            image: v.image || product.images[0] || "/images/placeholder.jpg"
+          });
+        }
+      });
+    }
+    return list;
+  }, [product]);
+
+  const [selectedColor, setSelectedColor] = useState<string>(product?.color || "Default");
+
+  React.useEffect(() => {
+    if (product) {
+      setSelectedColor(product.color || "Default");
+      setColorImageOverride(null);
+      setSelectedImage(0);
+    }
+  }, [product]);
+
+  if (!quickViewProduct || !product) return null;
+
   const wishlisted = isWishlisted(product.id);
 
+  const handleSelectColor = (colorOpt: { name: string; color_code: string; image: string }) => {
+    setSelectedColor(colorOpt.name);
+    if (colorOpt.image) {
+      setColorImageOverride(colorOpt.image);
+      const idx = product.images.indexOf(colorOpt.image);
+      if (idx >= 0) setSelectedImage(idx);
+    }
+  };
+
   const handleAddToCart = () => {
+    const matched = availableColors.find(c => c.name.toLowerCase() === selectedColor.toLowerCase());
+    const cartImg = colorImageOverride || matched?.image || product.images[selectedImage] || product.images[0];
+
     addToCart(
       product,
       quantity,
@@ -31,7 +80,8 @@ export default function QuickViewModal() {
         fallPico: product.category === "saree" && fallPico,
         bottomStyle: product.category === "chudar" ? bottomStyle : undefined
       },
-      product.color
+      selectedColor,
+      cartImg
     );
     setQuickViewProduct(null);
   };
@@ -54,9 +104,9 @@ export default function QuickViewModal() {
         <div className="flex flex-col bg-stone-100 md:w-1/2">
           <div className="relative aspect-[3/4] w-full overflow-hidden">
             <img
-              src={product.images[selectedImage] || product.images[0]}
+              src={colorImageOverride || product.images[selectedImage] || product.images[0]}
               alt={product.name}
-              className="h-full w-full object-cover object-center"
+              className="h-full w-full object-cover object-center transition-all duration-300"
             />
             <span className="absolute top-4 left-4 rounded-full bg-amber-900/90 px-3 py-1 text-xs font-semibold text-amber-200 backdrop-blur-md">
               {product.category === "saree" ? "Saree Couture" : "Chudar & Salwar Set"}
@@ -69,9 +119,12 @@ export default function QuickViewModal() {
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setSelectedImage(idx)}
+                  onClick={() => {
+                    setSelectedImage(idx);
+                    setColorImageOverride(null);
+                  }}
                   className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition ${
-                    selectedImage === idx ? "border-amber-600 shadow" : "border-transparent opacity-70"
+                    (colorImageOverride === img || (!colorImageOverride && selectedImage === idx)) ? "border-amber-600 shadow" : "border-transparent opacity-70"
                   }`}
                 >
                   <img src={img} alt="" className="h-full w-full object-cover" />
@@ -120,6 +173,61 @@ export default function QuickViewModal() {
               Inclusive of GST & Silkmark
             </span>
           </div>
+
+          {/* Color Selection (Amazon Style) */}
+          {availableColors.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50/70 p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-stone-900">Color:</span>
+                  <span className="text-xs font-bold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-full border border-amber-900/10">
+                    {selectedColor}
+                  </span>
+                </div>
+                <span className="text-[10px] text-stone-500">
+                  {availableColors.length} available
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                {availableColors.map((colorOpt, idx) => {
+                  const isSelected = selectedColor.toLowerCase() === colorOpt.name.toLowerCase();
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectColor(colorOpt)}
+                      className={`flex items-center gap-2 rounded-xl border p-1.5 pr-2.5 transition-all ${
+                        isSelected
+                          ? "border-amber-700 bg-amber-50 shadow-sm ring-1 ring-amber-600"
+                          : "border-stone-200 bg-white hover:border-amber-300"
+                      }`}
+                    >
+                      <div className="relative h-7 w-6 shrink-0 overflow-hidden rounded-lg bg-stone-100 border border-stone-200 shadow-sm">
+                        {colorOpt.image ? (
+                          <img
+                            src={colorOpt.image}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div
+                            className="h-full w-full"
+                            style={{ backgroundColor: colorOpt.color_code }}
+                          />
+                        )}
+                      </div>
+                      <span className={`text-[11px] font-bold ${
+                        isSelected ? "text-amber-950" : "text-stone-700"
+                      }`}>
+                        {colorOpt.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Saree/Chudar Customization Options */}
           <div className="mt-6 space-y-4 border-t border-stone-200 pt-5">

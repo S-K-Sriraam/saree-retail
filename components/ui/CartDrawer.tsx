@@ -134,7 +134,12 @@ export default function CartDrawer() {
                       </div>
 
                       {/* Customization Badges */}
-                      <div className="mt-1 flex flex-wrap gap-1 text-[10px] text-stone-500">
+                      <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-stone-500">
+                        {item.selectedColor && (
+                          <span className="rounded bg-amber-50 text-amber-900 border border-amber-900/15 px-1.5 py-0.5 font-bold">
+                            Color: {item.selectedColor}
+                          </span>
+                        )}
                         {item.customization?.size && (
                           <span className="rounded bg-stone-100 px-1.5 py-0.5 font-medium">
                             Size: {item.customization.size}

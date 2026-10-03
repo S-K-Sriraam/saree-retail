@@ -51,6 +51,7 @@ export async function POST(request: Request) {
       work_type: product.work_type || "Pure Zari Brocade",
       color: product.color,
       color_code: product.color_code || "#881337",
+      color_variants: product.color_variants || [],
       description: product.description,
       short_description: product.short_description,
       sku: product.sku,

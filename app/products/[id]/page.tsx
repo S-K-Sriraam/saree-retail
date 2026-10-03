@@ -31,7 +31,54 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const [activeViewMode, setActiveViewMode] = useState<"gallery" | "3d_studio">("gallery");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [activeImageOverride, setActiveImageOverride] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+
+  // Available Color Choices (Base color + all Color Variants)
+  const availableColors = React.useMemo(() => {
+    if (!product) return [];
+    const list: Array<{ name: string; color_code: string; image: string }> = [];
+    if (product.color) {
+      list.push({
+        name: product.color,
+        color_code: product.color_code || "#881337",
+        image: product.images[0] || "/images/placeholder.jpg"
+      });
+    }
+    if (product.color_variants && product.color_variants.length > 0) {
+      product.color_variants.forEach(v => {
+        if (v.name && !list.some(item => item.name.toLowerCase() === v.name.toLowerCase())) {
+          list.push({
+            name: v.name,
+            color_code: v.color_code || "#1e3a8a",
+            image: v.image || product.images[0] || "/images/placeholder.jpg"
+          });
+        }
+      });
+    }
+    return list;
+  }, [product]);
+
+  const [selectedColor, setSelectedColor] = useState<string>(product?.color || "Default");
+
+  // Keep selectedColor in sync if product changes
+  React.useEffect(() => {
+    if (product) {
+      setSelectedColor(product.color || "Default");
+      setActiveImageOverride(null);
+      setSelectedImageIndex(0);
+    }
+  }, [product]);
+
+  // Color selection click handler
+  const handleSelectColor = (colorOpt: { name: string; color_code: string; image: string }) => {
+    setSelectedColor(colorOpt.name);
+    if (colorOpt.image) {
+      setActiveImageOverride(colorOpt.image);
+      const imgIdx = product.images.indexOf(colorOpt.image);
+      if (imgIdx >= 0) setSelectedImageIndex(imgIdx);
+    }
+  };
 
   // Customization state
   const [tailoringType, setTailoringType] = useState<"unstitched" | "standard" | "custom_tailored">("standard");
@@ -57,8 +104,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     : 0;
 
   const savingsAmount = product.compare_price ? product.compare_price - product.base_price : 0;
+  const currentHeroImage = activeImageOverride || product.images[selectedImageIndex] || product.images[0];
 
   const handleAddToCart = () => {
+    const matchedColor = availableColors.find(c => c.name.toLowerCase() === selectedColor.toLowerCase());
+    const cartImage = matchedColor?.image || currentHeroImage;
+
     addToCart(
       product,
       quantity,
@@ -69,7 +120,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         fallPico: product.category === "saree" && fallPico,
         bottomStyle: product.category === "chudar" ? bottomStyle : undefined
       },
-      product.color
+      selectedColor,
+      cartImage
     );
   };
 
@@ -139,9 +191,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 {/* Main Large Image */}
                 <div className="relative aspect-[3/4] w-full overflow-hidden rounded-3xl border border-amber-900/15 bg-stone-100 shadow-xl">
                   <img
-                    src={product.images[selectedImageIndex] || product.images[0]}
+                    src={currentHeroImage}
                     alt={product.name}
-                    className="h-full w-full object-cover object-center"
+                    className="h-full w-full object-cover object-center transition-all duration-300"
                   />
 
                   {discountPercent > 0 && (
@@ -168,9 +220,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     {product.images.map((img, idx) => (
                       <button
                         key={idx}
-                        onClick={() => setSelectedImageIndex(idx)}
+                        onClick={() => {
+                          setSelectedImageIndex(idx);
+                          setActiveImageOverride(null);
+                        }}
                         className={`h-24 w-20 shrink-0 overflow-hidden rounded-2xl border-2 transition ${
-                          selectedImageIndex === idx
+                          currentHeroImage === img
                             ? "border-amber-600 ring-2 ring-amber-400/30"
                             : "border-transparent opacity-70 hover:opacity-100"
                         }`}
@@ -237,6 +292,76 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 Price includes 5% GST & Silkmark certification. Free express insurance included.
               </p>
             </div>
+
+            {/* Amazon-Style Color Selection Section */}
+            {availableColors.length > 0 && (
+              <div className="rounded-2xl border border-amber-900/15 bg-white p-5 shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-stone-900">
+                      Color Choice:
+                    </span>
+                    <span className="text-xs font-bold text-amber-900 bg-amber-100/70 border border-amber-900/20 px-3 py-0.5 rounded-full">
+                      {selectedColor}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-semibold text-stone-500">
+                    {availableColors.length} {availableColors.length === 1 ? "shade available" : "shades available"}
+                  </span>
+                </div>
+
+                {/* Swatch Cards (Amazon Style with mini photo + color swatch dot) */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                  {availableColors.map((colorOpt, idx) => {
+                    const isSelected = selectedColor.toLowerCase() === colorOpt.name.toLowerCase();
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectColor(colorOpt)}
+                        className={`group relative flex items-center gap-2.5 rounded-2xl border-2 p-2 text-left transition-all ${
+                          isSelected
+                            ? "border-amber-800 bg-amber-50 shadow-md ring-2 ring-amber-500/20"
+                            : "border-stone-200 bg-white hover:border-amber-400 hover:bg-stone-50/80"
+                        }`}
+                      >
+                        {/* Mini Thumbnail or Color Swatch */}
+                        <div className="relative h-12 w-10 shrink-0 overflow-hidden rounded-xl bg-stone-100 border border-stone-200 shadow-sm">
+                          {colorOpt.image ? (
+                            <img
+                              src={colorOpt.image}
+                              alt={colorOpt.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div
+                              className="h-full w-full"
+                              style={{ backgroundColor: colorOpt.color_code }}
+                            />
+                          )}
+                          <span
+                            className="absolute bottom-1 right-1 h-3 w-3 rounded-full border-2 border-white shadow-sm"
+                            style={{ backgroundColor: colorOpt.color_code }}
+                          />
+                        </div>
+
+                        {/* Color Name and Active State */}
+                        <div className="flex-1 min-w-0 pr-1">
+                          <p className={`text-xs font-bold truncate leading-tight ${
+                            isSelected ? "text-amber-950" : "text-stone-800"
+                          }`}>
+                            {colorOpt.name}
+                          </p>
+                          <p className="text-[10px] text-stone-500 mt-0.5 truncate">
+                            {isSelected ? "Selected ✓" : "Click to view"}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Saree vs Chudar Custom Tailoring Section */}
             <div className="rounded-2xl border border-amber-900/15 bg-white p-6 shadow-sm space-y-5">

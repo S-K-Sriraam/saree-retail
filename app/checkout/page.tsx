@@ -401,7 +401,9 @@ export default function CheckoutPage() {
                     />
                     <div className="flex-1">
                       <h4 className="font-bold text-stone-900 line-clamp-1 font-serif-luxury">{item.productName}</h4>
-                      <p className="text-[11px] text-stone-500">Qty: {item.quantity} &bull; {item.customization?.size || "Standard"}</p>
+                      <p className="text-[11px] text-stone-500">
+                        Qty: {item.quantity} {item.selectedColor ? `• Color: ${item.selectedColor}` : ""} • {item.customization?.size || "Standard"}
+                      </p>
                       <p className="text-xs font-semibold text-stone-900 mt-1">Rs. {(item.price * item.quantity).toLocaleString("en-IN")}</p>
                     </div>
                   </div>
