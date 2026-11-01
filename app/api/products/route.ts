@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { Product } from "@/lib/mock-data";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://egcqtoibavhjvcdyzosw.supabase.co";
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_leYxEdE8HaiBwLtTo5DT6Q_P58v7ly2";
+// Priority: service_role key (bypasses RLS) > anon key > publishable key (fallback hardcoded)
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  "sb_publishable_leYxEdE8HaiBwLtTo5DT6Q_P58v7ly2";
 
 const HEADERS = {
   apikey: SUPABASE_KEY,
@@ -77,7 +82,7 @@ export async function POST(request: Request) {
 
     if (!res.ok) {
       const err = await res.text();
-      console.warn("Supabase insert product response:", res.status, err);
+      console.error("[POST /api/products] Supabase insert FAILED:", res.status, err, "| key_type:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "service_role" : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "anon" : "publishable");
       return NextResponse.json({ success: false, error: err, fallbackProduct: product }, { status: 400 });
     }
 
@@ -109,7 +114,7 @@ export async function PUT(request: Request) {
 
     if (!patchRes.ok) {
       const err = await patchRes.text();
-      console.warn("Supabase PATCH product error:", err);
+      console.error("[PUT /api/products] Supabase PATCH FAILED:", patchRes.status, err, "| key_type:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "service_role" : "anon/publishable");
       return NextResponse.json({ success: false, error: err }, { status: 500 });
     }
 
