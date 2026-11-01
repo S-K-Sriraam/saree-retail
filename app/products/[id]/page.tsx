@@ -28,6 +28,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const product = getProductBySlug(resolvedParams.id) || products[0];
   const wishlisted = isWishlisted(product?.id || "");
+  const isOutOfStock = (product?.stock ?? 1) <= 0;
+  const isLowStock = !isOutOfStock && (product?.stock ?? 1) <= 5;
 
   const [activeViewMode, setActiveViewMode] = useState<"gallery" | "3d_studio">("gallery");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -291,6 +293,24 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <p className="mt-1 text-[11px] text-stone-500">
                 Price includes 5% GST & Silkmark certification. Free express insurance included.
               </p>
+
+              {/* Stock Status Banner */}
+              {isOutOfStock ? (
+                <div className="mt-3 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-rose-800">
+                  <span className="font-bold text-xs uppercase tracking-wide">Out of Stock</span>
+                  <span className="text-[11px] text-rose-600">— This creation is temporarily sold out.</span>
+                </div>
+              ) : isLowStock ? (
+                <div className="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200 p-2.5 text-amber-800">
+                  <span className="font-bold text-xs">⚠️ Only {product.stock} pieces remaining!</span>
+                  <span className="text-[11px] text-stone-600">Order soon before inventory depletes.</span>
+                </div>
+              ) : (
+                <div className="mt-3 flex items-center gap-2 text-emerald-700 text-xs font-semibold">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>In Stock ({product.stock} units available for immediate dispatch)</span>
+                </div>
+              )}
             </div>
 
             {/* Amazon-Style Color Selection Section */}
@@ -489,38 +509,60 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               {/* Quantity & Buy CTAs */}
               <div className="border-t border-stone-100 pt-5 space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center rounded-xl border border-stone-300 bg-white">
+                  <div className={`flex items-center rounded-xl border ${isOutOfStock ? "border-stone-200 bg-stone-100 opacity-60" : "border-stone-300 bg-white"}`}>
                     <button
+                      type="button"
+                      disabled={isOutOfStock}
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="px-3.5 py-2.5 text-sm font-bold text-stone-600 hover:text-black"
+                      className="px-3.5 py-2.5 text-sm font-bold text-stone-600 hover:text-black disabled:cursor-not-allowed"
                     >
                       -
                     </button>
-                    <span className="w-8 text-center text-xs font-bold text-stone-900">{quantity}</span>
+                    <span className="w-8 text-center text-xs font-bold text-stone-900">{isOutOfStock ? 0 : quantity}</span>
                     <button
+                      type="button"
+                      disabled={isOutOfStock}
                       onClick={() => setQuantity(quantity + 1)}
-                      className="px-3.5 py-2.5 text-sm font-bold text-stone-600 hover:text-black"
+                      className="px-3.5 py-2.5 text-sm font-bold text-stone-600 hover:text-black disabled:cursor-not-allowed"
                     >
                       +
                     </button>
                   </div>
 
-                  <button
-                    onClick={handleAddToCart}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-stone-950 py-3.5 text-xs font-bold text-white shadow-lg transition hover:bg-stone-800"
-                  >
-                    <ShoppingBag className="h-4 w-4" />
-                    <span>Add to Shopping Bag</span>
-                  </button>
+                  {isOutOfStock ? (
+                    <button
+                      disabled
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-stone-200 py-3.5 text-xs font-bold text-stone-500 cursor-not-allowed"
+                    >
+                      <span>Sold Out / Out of Stock</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleAddToCart}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-stone-950 py-3.5 text-xs font-bold text-white shadow-lg transition hover:bg-stone-800"
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      <span>Add to Shopping Bag</span>
+                    </button>
+                  )}
                 </div>
 
-                <button
-                  onClick={handleBuyNow}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 py-3.5 text-xs font-bold text-white shadow-lg transition hover:brightness-110"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  <span>Instant Luxury Buy Now &bull; Rs. {Number(product.base_price * quantity).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}</span>
-                </button>
+                {isOutOfStock ? (
+                  <button
+                    disabled
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-stone-200 py-3.5 text-xs font-bold text-stone-400 cursor-not-allowed"
+                  >
+                    <span>Creation Temporarily Unavailable</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleBuyNow}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 py-3.5 text-xs font-bold text-white shadow-lg transition hover:brightness-110"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>Instant Luxury Buy Now &bull; Rs. {Number(product.base_price * quantity).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}</span>
+                  </button>
+                )}
               </div>
             </div>
 

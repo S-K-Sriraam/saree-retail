@@ -48,6 +48,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const wishlisted = mounted ? isWishlisted(product.id) : false;
 
+  const isOutOfStock = (product.stock ?? 1) <= 0;
+  const isLowStock = !isOutOfStock && (product.stock ?? 1) <= 3;
+
   const discountPercent = product.compare_price
     ? Math.round(((product.compare_price - product.base_price) / product.compare_price) * 100)
     : 0;
@@ -57,6 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isOutOfStock) return;
     const matched = availableColors.find(c => c.name.toLowerCase() === activeColor.toLowerCase());
     addToCart(
       product,
@@ -69,7 +73,11 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-amber-900/10 bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:border-amber-400/40 hover:shadow-xl hover:shadow-amber-500/5"
+      className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-xl ${
+        isOutOfStock 
+          ? "border-stone-200 opacity-90" 
+          : "border-amber-900/10 hover:border-amber-400/40 hover:shadow-amber-500/5"
+      }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -79,18 +87,28 @@ export default function ProductCard({ product }: ProductCardProps) {
           <img
             src={displayImage}
             alt={product.name}
-            className="h-full w-full object-cover object-center transition duration-700 ease-out group-hover:scale-105"
+            className={`h-full w-full object-cover object-center transition duration-700 ease-out group-hover:scale-105 ${
+              isOutOfStock ? "grayscale-[25%] opacity-80" : ""
+            }`}
             loading="lazy"
           />
         </Link>
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          {discountPercent > 0 && (
+          {isOutOfStock ? (
+            <span className="rounded-full bg-rose-700 px-3 py-1 text-[10px] font-bold tracking-wider text-white uppercase shadow-md">
+              Sold Out
+            </span>
+          ) : isLowStock ? (
+            <span className="rounded-full bg-amber-600 px-2.5 py-0.5 text-[10px] font-bold text-white shadow">
+              Only {product.stock} Left
+            </span>
+          ) : discountPercent > 0 ? (
             <span className="rounded-full bg-rose-700 px-2.5 py-0.5 text-[11px] font-bold text-white shadow">
               {discountPercent}% OFF
             </span>
-          )}
+          ) : null}
           {product.category === "saree" ? (
             <span className="rounded-full border border-amber-500/30 bg-amber-950/80 px-2.5 py-0.5 text-[10px] font-semibold text-amber-200 backdrop-blur-md">
               Saree Couture
@@ -130,14 +148,16 @@ export default function ProductCard({ product }: ProductCardProps) {
             <span>Quick View</span>
           </button>
 
-          <button
-            suppressHydrationWarning
-            onClick={handleQuickAdd}
-            className="flex items-center justify-center rounded-xl bg-stone-950 px-3.5 py-2.5 text-white shadow-lg transition hover:bg-amber-700"
-            title="Quick Add to Bag"
-          >
-            <ShoppingBag className="h-3.5 w-3.5" />
-          </button>
+          {!isOutOfStock && (
+            <button
+              suppressHydrationWarning
+              onClick={handleQuickAdd}
+              className="flex items-center justify-center rounded-xl bg-stone-950 px-3.5 py-2.5 text-white shadow-lg transition hover:bg-amber-700"
+              title="Quick Add to Bag"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -220,13 +240,19 @@ export default function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
 
-          <button
-            suppressHydrationWarning
-            onClick={handleQuickAdd}
-            className="text-xs font-bold text-amber-800 hover:text-amber-950 hover:underline transition"
-          >
-            + Add to Bag
-          </button>
+          {isOutOfStock ? (
+            <span className="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full">
+              Out of Stock
+            </span>
+          ) : (
+            <button
+              suppressHydrationWarning
+              onClick={handleQuickAdd}
+              className="text-xs font-bold text-amber-800 hover:text-amber-950 hover:underline transition"
+            >
+              + Add to Bag
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -68,9 +68,10 @@ interface BoutiqueContextType {
 
   // Products
   products: Product[];
-  addProduct: (product: Omit<Product, "id" | "reviews_count" | "rating">) => Product;
-  updateProduct: (id: string, product: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
+  refreshProducts: () => Promise<void>;
+  addProduct: (product: Omit<Product, "id" | "reviews_count" | "rating">) => Promise<Product>;
+  updateProduct: (id: string, product: Partial<Product>) => Promise<boolean>;
+  deleteProduct: (id: string) => Promise<boolean>;
   getProductBySlug: (slug: string) => Product | undefined;
   getProductById: (id: string) => Product | undefined;
 
@@ -192,13 +193,13 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     // Live Sync with Supabase Database
-    fetch("/api/products")
-      .then(res => res.json())
-      .then(result => {
+    const syncProductsFromSupabase = async () => {
+      try {
+        const res = await fetch("/api/products", { cache: "no-store" });
+        const result = await res.json();
         if (result.success && Array.isArray(result.data) && result.data.length > 0) {
-          // Supabase has products → use them as the source of truth
           setProducts(result.data);
-          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(result.data));
+          try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(result.data)); } catch {}
         } else {
           // Supabase is empty → push our local products up to Supabase
           const localProds = (() => {
@@ -217,8 +218,37 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             )).then(() => console.log("Local products synced to Supabase."));
           }
         }
-      })
-      .catch(err => console.warn("Supabase products sync note:", err));
+      } catch (err) {
+        console.warn("Supabase products sync note:", err);
+      }
+    };
+
+    syncProductsFromSupabase();
+
+    // Cross-tab real-time synchronization
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEYS.PRODUCTS && e.newValue) {
+        try {
+          const updated = JSON.parse(e.newValue);
+          if (Array.isArray(updated)) setProducts(updated);
+        } catch {}
+      }
+      if (e.key === STORAGE_KEYS.ORDERS && e.newValue) {
+        try {
+          const updated = JSON.parse(e.newValue);
+          if (Array.isArray(updated)) setOrders(updated);
+        } catch {}
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+
+    // Auto-refresh on window focus / tab switch
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        syncProductsFromSupabase();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     fetch("/api/orders")
       .then(res => res.json())
@@ -268,6 +298,11 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       .catch(err => console.warn("Supabase profiles sync note:", err));
 
     setMounted(true);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   // Save changes to localStorage
@@ -695,48 +730,110 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // Refresh products from Supabase
+  const refreshProducts = async () => {
+    try {
+      const res = await fetch("/api/products", { cache: "no-store" });
+      const result = await res.json();
+      if (result.success && Array.isArray(result.data)) {
+        setProducts(result.data);
+        try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(result.data)); } catch {}
+      }
+    } catch (e) {
+      console.warn("Refresh products error:", e);
+    }
+  };
+
   // Product CRUD with Supabase Persistence
-  const addProduct = (newProd: Omit<Product, "id" | "reviews_count" | "rating">): Product => {
+  const addProduct = async (newProd: Omit<Product, "id" | "reviews_count" | "rating">): Promise<Product> => {
     const id = `${newProd.category}-${Date.now().toString(36)}`;
     const product: Product = {
       ...newProd,
       id,
+      subcategory: newProd.subcategory || (newProd.category === "saree" ? "Saree Couture" : "Chudar & Salwar"),
       rating: 5.0,
       reviews_count: 0
     };
-    setProducts(prev => [product, ...prev]);
+
+    setProducts(prev => {
+      const updated = [product, ...prev];
+      try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updated)); } catch {}
+      return updated;
+    });
     showToast(`Added "${product.name}" to inventory.`);
 
     // Persist to Supabase database
-    fetch("/api/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(product)
-    }).catch(e => console.warn("Supabase product persist error:", e));
+    try {
+      await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product)
+      });
+    } catch (e) {
+      console.warn("Supabase product persist error:", e);
+    }
 
     return product;
   };
 
-  const updateProduct = (id: string, updatedFields: Partial<Product>) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p));
-    showToast("Product updated successfully.");
+  const updateProduct = async (id: string, updatedFields: Partial<Product>): Promise<boolean> => {
+    let fullUpdatedProduct: Product | undefined;
+    setProducts(prev => {
+      const updated = prev.map(p => {
+        if (p.id === id) {
+          fullUpdatedProduct = { ...p, ...updatedFields };
+          return fullUpdatedProduct;
+        }
+        return p;
+      });
+      try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updated)); } catch {}
+      return updated;
+    });
 
-    // Persist to Supabase database
-    fetch("/api/products", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, updates: updatedFields })
-    }).catch(e => console.warn("Supabase product update error:", e));
+    if (updatedFields.stock !== undefined) {
+      showToast(`Stock updated to ${updatedFields.stock} units.`);
+    } else {
+      showToast("Product updated successfully.");
+    }
+
+    // Persist to Supabase database with full product fallback for upsert
+    try {
+      const res = await fetch("/api/products", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          updates: updatedFields,
+          product: fullUpdatedProduct
+        })
+      });
+      const data = await res.json();
+      return !!(res.ok && data.success);
+    } catch (e) {
+      console.warn("Supabase product update error:", e);
+      return false;
+    }
   };
 
-  const deleteProduct = (id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+  const deleteProduct = async (id: string): Promise<boolean> => {
+    setProducts(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updated)); } catch {}
+      return updated;
+    });
     showToast("Product removed from inventory.");
 
     // Persist delete to Supabase database
-    fetch(`/api/products?id=${encodeURIComponent(id)}`, {
-      method: "DELETE"
-    }).catch(e => console.warn("Supabase product delete error:", e));
+    try {
+      const res = await fetch(`/api/products?id=${encodeURIComponent(id)}`, {
+        method: "DELETE"
+      });
+      const data = await res.json();
+      return !!(res.ok && data.success);
+    } catch (e) {
+      console.warn("Supabase product delete error:", e);
+      return false;
+    }
   };
 
   const getProductBySlug = (slug: string) => products.find(p => p.slug === slug || p.id === slug);
@@ -750,6 +847,11 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     selectedColor?: string,
     selectedImage?: string
   ) => {
+    if ((product.stock ?? 1) <= 0) {
+      showToast(`⚠️ "${product.name}" is currently out of stock.`);
+      return;
+    }
+
     setCart(prev => {
       const colorVal = selectedColor || product.color || "Default";
       const colorKey = colorVal.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -929,6 +1031,7 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         loginCustomerDirect,
         loginAdminDirect,
         products,
+        refreshProducts,
         addProduct,
         updateProduct,
         deleteProduct,

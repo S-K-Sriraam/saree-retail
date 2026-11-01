@@ -55,6 +55,8 @@ export default function QuickViewModal() {
 
   if (!quickViewProduct || !product) return null;
 
+  const isOutOfStock = (product.stock ?? 1) <= 0;
+  const isLowStock = !isOutOfStock && (product.stock ?? 1) <= 5;
   const wishlisted = isWishlisted(product.id);
 
   const handleSelectColor = (colorOpt: { name: string; color_code: string; image: string }) => {
@@ -160,7 +162,7 @@ export default function QuickViewModal() {
           </p>
 
           {/* Price */}
-          <div className="mt-4 flex items-baseline gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="text-2xl font-bold text-stone-950">
               Rs. {Number(product.base_price).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
             </span>
@@ -169,9 +171,19 @@ export default function QuickViewModal() {
                 Rs. {Number(product.compare_price).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
               </span>
             )}
-            <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-              Inclusive of GST & Silkmark
-            </span>
+            {isOutOfStock ? (
+              <span className="rounded-full bg-rose-100 border border-rose-300 px-3 py-0.5 text-xs font-bold text-rose-800">
+                Sold Out
+              </span>
+            ) : isLowStock ? (
+              <span className="rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                Only {product.stock} units left!
+              </span>
+            ) : (
+              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                In Stock • Authentic Handloom
+              </span>
+            )}
           </div>
 
           {/* Color Selection (Amazon Style) */}
@@ -316,29 +328,42 @@ export default function QuickViewModal() {
 
             {/* Quantity and Actions */}
             <div className="flex items-center gap-4 pt-2">
-              <div className="flex items-center rounded-xl border border-stone-300">
+              <div className={`flex items-center rounded-xl border ${isOutOfStock ? "border-stone-200 bg-stone-100 opacity-60" : "border-stone-300"}`}>
                 <button
+                  type="button"
+                  disabled={isOutOfStock}
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3 py-2 text-sm font-bold text-stone-600 hover:text-black"
+                  className="px-3 py-2 text-sm font-bold text-stone-600 hover:text-black disabled:cursor-not-allowed"
                 >
                   -
                 </button>
-                <span className="w-8 text-center text-xs font-bold text-stone-900">{quantity}</span>
+                <span className="w-8 text-center text-xs font-bold text-stone-900">{isOutOfStock ? 0 : quantity}</span>
                 <button
+                  type="button"
+                  disabled={isOutOfStock}
                   onClick={() => setQuantity(quantity + 1)}
-                  className="px-3 py-2 text-sm font-bold text-stone-600 hover:text-black"
+                  className="px-3 py-2 text-sm font-bold text-stone-600 hover:text-black disabled:cursor-not-allowed"
                 >
                   +
                 </button>
               </div>
 
-              <button
-                onClick={handleAddToCart}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-stone-950 py-3 text-xs font-bold text-white shadow-lg transition hover:bg-amber-800"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                <span>Add to Shopping Bag</span>
-              </button>
+              {isOutOfStock ? (
+                <button
+                  disabled
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-stone-200 py-3 text-xs font-bold text-stone-500 cursor-not-allowed"
+                >
+                  <span>Currently Out of Stock</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleAddToCart}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-stone-950 py-3 text-xs font-bold text-white shadow-lg transition hover:bg-amber-800"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  <span>Add to Shopping Bag</span>
+                </button>
+              )}
 
               <button
                 onClick={() => toggleWishlist(product.id)}

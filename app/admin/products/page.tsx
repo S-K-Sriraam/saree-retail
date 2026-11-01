@@ -16,22 +16,25 @@ import {
   Filter,
   Upload,
   ImageIcon,
-  Palette
+  Palette,
+  RotateCcw
 } from "lucide-react";
 import { useBoutique } from "@/lib/store";
 import { Product, ColorVariant } from "@/lib/mock-data";
 
 export default function AdminProductsPage() {
-  const { products, addProduct, updateProduct, deleteProduct } = useBoutique();
+  const { products, refreshProducts, addProduct, updateProduct, deleteProduct } = useBoutique();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Form State for Add / Edit
   const [formName, setFormName] = useState("");
   const [formCategory, setFormCategory] = useState<"saree" | "chudar">("saree");
+  const [formSubcategory, setFormSubcategory] = useState("Banarasi Silk");
   const [formPrice, setFormPrice] = useState<string>("0.0");
   const [formFabric, setFormFabric] = useState("Pure Mulberry Silk");
   const [formColor, setFormColor] = useState("Royal Maroon & Gold");
@@ -89,6 +92,7 @@ export default function AdminProductsPage() {
     setEditingProduct(null);
     setFormName("");
     setFormCategory("saree");
+    setFormSubcategory("Banarasi Silk");
     setFormPrice("0.0");
     setFormFabric("Pure Mulberry Silk");
     setFormColor("Imperial Crimson & Gold");
@@ -107,6 +111,7 @@ export default function AdminProductsPage() {
     setEditingProduct(p);
     setFormName(p.name);
     setFormCategory(p.category);
+    setFormSubcategory(p.subcategory || (p.category === "saree" ? "Banarasi Silk" : "Anarkali Suits"));
     setFormPrice(p.base_price !== undefined ? p.base_price.toString() : "0.0");
     setFormFabric(p.fabric);
     setFormColor(p.color);
@@ -121,7 +126,7 @@ export default function AdminProductsPage() {
     setIsAddModalOpen(true);
   };
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName) return;
 
@@ -134,10 +139,13 @@ export default function AdminProductsPage() {
     const allImages = Array.from(new Set([formImageUrl, ...variantImages].filter(Boolean)));
     if (allImages.length === 0) allImages.push("/images/placeholder.jpg");
 
+    const resolvedSubcategory = formSubcategory.trim() || (formCategory === "saree" ? "Banarasi Silk" : "Anarkali Suits");
+
     if (editingProduct) {
-      updateProduct(editingProduct.id, {
+      await updateProduct(editingProduct.id, {
         name: formName,
         category: formCategory,
+        subcategory: resolvedSubcategory,
         base_price: Number(validPrice.toFixed(2)),
         fabric: formFabric,
         color: formColor,
@@ -150,10 +158,11 @@ export default function AdminProductsPage() {
         three_d_preset: formPreset
       });
     } else {
-      addProduct({
+      await addProduct({
         name: formName,
         slug: formName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
         category: formCategory,
+        subcategory: resolvedSubcategory,
         base_price: Number(validPrice.toFixed(2)),
         fabric: formFabric,
         color: formColor,
@@ -203,13 +212,28 @@ export default function AdminProductsPage() {
           </p>
         </div>
 
-        <button
-          onClick={openAddModal}
-          className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-stone-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Add New Handloom Piece</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              setIsSyncing(true);
+              refreshProducts().finally(() => setTimeout(() => setIsSyncing(false), 600));
+            }}
+            disabled={isSyncing}
+            className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-3 py-2.5 text-xs font-semibold text-stone-300 hover:bg-white/10 hover:text-white transition"
+            title="Sync latest inventory with Supabase database"
+          >
+            <RotateCcw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin text-amber-400" : ""}`} />
+            <span>{isSyncing ? "Syncing..." : "Sync Database"}</span>
+          </button>
+
+          <button
+            onClick={openAddModal}
+            className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-stone-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add New Handloom Piece</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -340,9 +364,44 @@ export default function AdminProductsPage() {
                   </td>
 
                   <td className="p-4">
-                    <span className={`font-bold ${product.stock <= 5 ? "text-rose-400" : "text-stone-300"}`}>
-                      {product.stock} units
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => updateProduct(product.id, { stock: Math.max(0, product.stock - 1) })}
+                        className="flex h-6 w-6 items-center justify-center rounded-lg border border-white/20 bg-white/5 text-xs font-bold text-stone-300 hover:bg-white/10 hover:text-white transition active:scale-95"
+                        title="Decrease stock by 1"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min="0"
+                        value={product.stock}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          updateProduct(product.id, { stock: isNaN(val) ? 0 : Math.max(0, val) });
+                        }}
+                        className={`w-14 rounded-lg border px-1.5 py-0.5 text-center text-xs font-bold outline-none transition ${
+                          product.stock <= 0
+                            ? "border-rose-500/60 bg-rose-500/10 text-rose-300 focus:border-rose-400"
+                            : product.stock <= 5
+                            ? "border-amber-500/60 bg-amber-500/10 text-amber-300 focus:border-amber-400"
+                            : "border-white/15 bg-white/5 text-stone-200 focus:border-amber-400"
+                        }`}
+                        title="Directly edit stock and sync with database"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => updateProduct(product.id, { stock: product.stock + 1 })}
+                        className="flex h-6 w-6 items-center justify-center rounded-lg border border-white/20 bg-white/5 text-xs font-bold text-stone-300 hover:bg-white/10 hover:text-white transition active:scale-95"
+                        title="Increase stock by 1"
+                      >
+                        +
+                      </button>
+                      <span className={`text-[10px] font-semibold ml-0.5 ${product.stock <= 0 ? "text-rose-400" : "text-stone-400"}`}>
+                        {product.stock <= 0 ? "Sold Out" : "units"}
+                      </span>
+                    </div>
                   </td>
 
                   <td className="p-4">
@@ -435,16 +494,34 @@ export default function AdminProductsPage() {
                 />
               </div>
 
-              <div>
-                <label className="block font-semibold text-stone-300">Category</label>
-                <select
-                  value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value as any)}
-                  className="mt-1 w-full rounded-xl border border-white/15 bg-[#1f1b27] p-2.5 text-white outline-none focus:border-amber-400"
-                >
-                  <option value="saree">Saree Couture</option>
-                  <option value="chudar">Chudar & Salwar Suite</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-stone-300">Category</label>
+                  <select
+                    value={formCategory}
+                    onChange={(e) => {
+                      const newCat = e.target.value as "saree" | "chudar";
+                      setFormCategory(newCat);
+                      setFormSubcategory(newCat === "saree" ? "Banarasi Silk" : "Anarkali Suits");
+                    }}
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-[#1f1b27] p-2.5 text-white outline-none focus:border-amber-400"
+                  >
+                    <option value="saree">Saree Couture</option>
+                    <option value="chudar">Chudar & Salwar Suite</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-stone-300">Subcategory / Weave Style</label>
+                  <input
+                    type="text"
+                    value={formSubcategory}
+                    onChange={(e) => setFormSubcategory(e.target.value)}
+                    placeholder={formCategory === "saree" ? "e.g. Banarasi Silk / Kanchipuram" : "e.g. Anarkali Suit / Palazzo"}
+                    required
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-white/5 p-2.5 text-white outline-none focus:border-amber-400"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
