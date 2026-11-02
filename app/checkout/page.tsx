@@ -86,8 +86,16 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen bg-[#faf7f2] py-20 px-4">
         <div className="mx-auto max-w-2xl rounded-3xl border border-amber-900/15 bg-white p-8 text-center shadow-xl sm:p-12 animate-in zoom-in-95">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shadow-inner">
-            <CheckCircle2 className="h-10 w-10" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-900/15 bg-white p-1 shadow-md">
+            <img
+              src="/images/logo.jpeg"
+              alt="Geethavarnam Logo"
+              className="h-full w-full rounded-xl object-cover"
+            />
+          </div>
+
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shadow-inner">
+            <CheckCircle2 className="h-8 w-8" />
           </div>
 
           <span className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-50 px-4 py-1 text-xs font-semibold text-emerald-800">

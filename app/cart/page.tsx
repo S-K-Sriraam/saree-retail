@@ -65,8 +65,12 @@ export default function CartPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
         {cart.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-amber-900/20 bg-white p-16 text-center shadow-sm">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-amber-100/60 text-amber-800">
-              <ShoppingBag className="h-10 w-10" />
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl border border-amber-900/15 bg-white p-1.5 shadow-md">
+              <img
+                src="/images/logo.jpeg"
+                alt="Geethavarnam Logo"
+                className="h-full w-full rounded-xl object-cover"
+              />
             </div>
             <h2 className="mt-4 text-xl font-bold text-stone-900 font-serif-luxury sm:text-2xl">
               Your Shopping Bag is Currently Empty

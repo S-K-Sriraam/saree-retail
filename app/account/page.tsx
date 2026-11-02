@@ -127,10 +127,14 @@ export default function AccountPage() {
     return (
       <main className="min-h-screen bg-[#faf7f2] py-20 px-4">
         <div className="mx-auto max-w-md rounded-3xl border border-amber-900/15 bg-white p-8 text-center shadow-xl">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100/60 text-amber-800">
-            <User className="h-8 w-8" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-900/15 bg-white p-1 shadow-md">
+            <img
+              src="/images/logo.jpeg"
+              alt="Geethavarnam Logo"
+              className="h-full w-full rounded-xl object-cover"
+            />
           </div>
-          <h1 className="mt-4 text-2xl font-bold text-stone-900 font-serif-luxury">
+          <h1 className="mt-2 text-2xl font-bold text-stone-900 font-serif-luxury">
             Customer Connoisseur Portal
           </h1>
           <p className="mt-2 text-xs text-stone-600">

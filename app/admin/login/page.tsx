@@ -64,8 +64,12 @@ export default function AdminLoginPage() {
 
           {/* Admin Header */}
           <div className="text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/20 to-amber-900/40 text-amber-300 shadow-inner">
-              <ShieldAlert className="h-7 w-7" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/20 to-amber-900/40 p-1 shadow-xl">
+              <img
+                src="/images/logo.jpeg"
+                alt="Geethavarnam Logo"
+                className="h-full w-full rounded-xl object-cover"
+              />
             </div>
             <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-300">
               Executive Management Portal

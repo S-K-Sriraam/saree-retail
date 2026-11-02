@@ -87,8 +87,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <main className="min-h-screen flex items-center justify-center bg-[#070608] px-4 py-16 text-white">
         <div className="w-full max-w-md rounded-3xl border border-amber-500/30 bg-[#120f17] p-8 text-center shadow-2xl">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-400/40 bg-amber-500/20 text-amber-300">
-            <ShieldAlert className="h-7 w-7" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-400/40 bg-amber-500/10 p-1 shadow-lg">
+            <img
+              src="/images/logo.jpeg"
+              alt="Geethavarnam Logo"
+              className="h-full w-full rounded-xl object-cover"
+            />
           </div>
           <h2 className="mt-4 text-2xl font-bold text-white font-serif-luxury">
             Admin Authentication Required
@@ -136,9 +140,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen flex flex-col md:flex-row bg-[#0a090d] text-stone-200">
       {/* Mobile Top Header */}
       <div className="flex items-center justify-between border-b border-amber-500/20 bg-[#120f17] p-4 md:hidden">
-        <div className="flex items-center gap-2">
-          <ShieldAlert className="h-5 w-5 text-amber-400" />
-          <span className="font-bold text-white font-serif-luxury">Admin Console</span>
+        <div className="flex items-center gap-2.5">
+          <img
+            src="/images/logo.jpeg"
+            alt="Geethavarnam Logo"
+            className="h-8 w-8 rounded-full object-cover border border-amber-400/40 shadow-sm"
+          />
+          <div>
+            <span className="font-bold text-white font-serif-luxury block leading-tight">Geethavarnam</span>
+            <span className="text-[9px] font-bold text-amber-400 tracking-wider uppercase block">Admin Suite</span>
+          </div>
         </div>
         <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className="text-stone-300">
           {mobileNavOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -151,14 +162,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }`}>
         <div className="space-y-8">
           {/* Brand */}
-          <Link href="/admin" className="block">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-stone-950 font-bold">
-                <ShieldAlert className="h-5 w-5" />
-              </div>
+          <Link href="/admin" className="block group">
+            <div className="flex items-center gap-3">
+              <img
+                src="/images/logo.jpeg"
+                alt="Geethavarnam Logo"
+                className="h-10 w-10 rounded-full object-cover border border-amber-400/40 shadow-sm group-hover:scale-105 transition shrink-0"
+              />
               <div>
-                <h1 className="text-base font-bold text-white font-serif-luxury">Geethavarnam</h1>
-                <span className="text-[10px] font-bold text-amber-400 tracking-wider uppercase block -mt-1">
+                <h1 className="text-base font-bold text-white font-serif-luxury group-hover:text-amber-300 transition">Geethavarnam</h1>
+                <span className="text-[10px] font-bold text-amber-400 tracking-wider uppercase block -mt-0.5">
                   Executive Suite
                 </span>
               </div>

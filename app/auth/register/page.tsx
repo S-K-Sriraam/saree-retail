@@ -125,6 +125,13 @@ export default function CustomerRegisterPage() {
         ) : (
           <div>
             <div className="text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/20 to-amber-900/40 p-1 shadow-xl">
+                <img
+                  src="/images/logo.jpeg"
+                  alt="Geethavarnam Logo"
+                  className="h-full w-full rounded-xl object-cover"
+                />
+              </div>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-amber-300">
                 <Sparkles className="h-3 w-3 text-amber-400" /> VIP Connoisseur Membership
               </span>

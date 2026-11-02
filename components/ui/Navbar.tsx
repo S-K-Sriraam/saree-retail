@@ -58,13 +58,20 @@ export default function Navbar() {
           </button>
 
           {/* Boutique Brand Logo */}
-          <Link href="/" className="group flex flex-col items-center">
-            <span className="text-2xl font-bold tracking-tight text-stone-900 font-serif-luxury sm:text-3xl group-hover:text-amber-900 transition">
-              Geethavarnam
-            </span>
-            <span className="text-[10px] tracking-[0.3em] font-semibold text-amber-700 uppercase -mt-0.5">
-              Silk & Couture Boutique
-            </span>
+          <Link href="/" className="group flex items-center gap-3">
+            <img
+              src="/images/logo.jpeg"
+              alt="Geethavarnam Logo"
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover border border-amber-900/15 shadow-sm group-hover:scale-105 group-hover:border-amber-700/40 transition-all duration-200 shrink-0"
+            />
+            <div className="flex flex-col">
+              <span className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900 font-serif-luxury group-hover:text-amber-900 transition leading-none">
+                Geethavarnam
+              </span>
+              <span className="text-[9px] sm:text-[10px] tracking-[0.25em] font-semibold text-amber-700 uppercase mt-0.5">
+                Silk & Couture Boutique
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation Links */}

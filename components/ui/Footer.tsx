@@ -70,13 +70,20 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-5">
           {/* Brand Story */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="inline-block">
-              <span className="text-2xl font-bold text-white font-serif-luxury tracking-tight">
-                Geethavarnam
-              </span>
-              <span className="block text-[10px] tracking-[0.3em] font-semibold text-amber-400 uppercase">
-                Haute Couture Indian Boutique
-              </span>
+            <Link href="/" className="flex items-center gap-3 group">
+              <img
+                src="/images/logo.jpeg"
+                alt="Geethavarnam Logo"
+                className="h-12 w-12 rounded-full object-cover border border-amber-400/30 shadow-md group-hover:border-amber-400/60 transition shrink-0"
+              />
+              <div>
+                <span className="text-2xl font-bold text-white font-serif-luxury tracking-tight block">
+                  Geethavarnam
+                </span>
+                <span className="block text-[10px] tracking-[0.3em] font-semibold text-amber-400 uppercase">
+                  Haute Couture Indian Boutique
+                </span>
+              </div>
             </Link>
             <p className="text-xs leading-relaxed text-stone-400 max-w-sm">
               Celebrating centuries of timeless Indian craft. From heirloom Kanchipuram bridal silks and Varanasi brocades to bespoke zardozi Anarkalis and artisanal chudars.

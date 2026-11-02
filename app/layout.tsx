@@ -4,7 +4,12 @@ import LayoutWrapper from "@/components/ui/LayoutWrapper";
 
 export const metadata: Metadata = {
   title: "Geethavarnam | Luxury Saree & Chudar Boutique",
-  description: "Authentic Kanchipuram Silks, Banarasi Brocades, Royal Anarkalis & Designer Chudars with 3D Fabric Drape Simulation.",
+  description: "Authentic Kanchipuram Silks, Banarasi Brocades, Royal Anarkalis & Designer Chudars.",
+  icons: {
+    icon: "/images/logo.jpeg",
+    shortcut: "/images/logo.jpeg",
+    apple: "/images/logo.jpeg",
+  },
 };
 
 export default function RootLayout({
