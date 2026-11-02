@@ -108,13 +108,13 @@ export default function Navbar() {
                   </div>
                   <div className="mt-1 space-y-0.5 text-sm">
                     <Link
-                      href="/products?category=saree&fabric=Pure+Mulberry+Silk"
-                      className="block rounded-lg px-3 py-2 text-stone-700 hover:bg-amber-50 hover:text-amber-900"
+                      href="/products?category=saree&sub=Soft+Silk"
+                      className="block rounded-lg px-3 py-2 text-stone-700 hover:bg-amber-50 hover:text-amber-900 font-medium"
                     >
-                      Kanchipuram Pure Silk
+                      Pure Pattu Soft Silk
                     </Link>
                     <Link
-                      href="/products?category=saree&fabric=Katan+Silk"
+                      href="/products?category=saree&sub=Banarasi+Silk"
                       className="block rounded-lg px-3 py-2 text-stone-700 hover:bg-amber-50 hover:text-amber-900"
                     >
                       Banarasi Kadwa Brocade

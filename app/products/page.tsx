@@ -31,7 +31,7 @@ function ProductsContent() {
   const [selectedFabric, setSelectedFabric] = useState<string>(initialFabric);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>(initialSub);
   const [searchQuery, setSearchQuery] = useState<string>(initialSearch);
-  const [priceRange, setPriceRange] = useState<number>(30000);
+  const [priceRange, setPriceRange] = useState<number>(50000);
   const [sortBy, setSortBy] = useState<"featured" | "price_asc" | "price_desc" | "rating">("featured");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
@@ -47,7 +47,85 @@ function ProductsContent() {
     if (srch) setSearchQuery(srch);
   }, [searchParams]);
 
-  // Filtered and sorted products
+  // Dynamic available fabrics based on live products + curated classics
+  const availableFabrics = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => {
+      const clean = p.fabric?.trim().replace(/\s+/g, " ");
+      if (clean) set.add(clean);
+    });
+    // Curated classics for rich catalog navigation
+    [
+      "Pure Soft Silk",
+      "Banarasi Silk",
+      "Kanchipuram Pure Silk",
+      "Katan Silk",
+      "Pure Sheer Tissue Organza",
+      "Pure Viscose Chiffon",
+      "Pure Chanderi Silk"
+    ].forEach((f) => set.add(f));
+
+    return ["All Fabrics", ...Array.from(set)];
+  }, [products]);
+
+  // Dynamic Saree Subcategories with item counts
+  const sareeSubcategories = useMemo(() => {
+    const counts: Record<string, number> = {};
+    products
+      .filter((p) => p.category === "saree")
+      .forEach((p) => {
+        const sub = p.subcategory?.trim().replace(/\s+/g, " ") || "Soft Silk";
+        counts[sub] = (counts[sub] || 0) + 1;
+      });
+
+    // Curated baseline subcategories
+    const defaults = ["Soft Silk", "Banarasi Silk", "Kanchipuram Silk", "Organza Sarees", "Chiffon & Georgette"];
+    defaults.forEach((d) => {
+      if (!(d in counts)) counts[d] = 0;
+    });
+
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }, [products]);
+
+  // Dynamic Chudar Subcategories with item counts
+  const chudarSubcategories = useMemo(() => {
+    const counts: Record<string, number> = {};
+    products
+      .filter((p) => p.category === "chudar")
+      .forEach((p) => {
+        const sub = p.subcategory?.trim().replace(/\s+/g, " ") || "Chudar Sets";
+        counts[sub] = (counts[sub] || 0) + 1;
+      });
+
+    const defaults = ["Anarkali Suits", "Straight Cut Salwar", "Palazzo Suits", "Sharara & Gharara Sets"];
+    defaults.forEach((d) => {
+      if (!(d in counts)) counts[d] = 0;
+    });
+
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }, [products]);
+
+  // Top active subcategories for quick-pill header bar
+  const topActiveSubcategories = useMemo(() => {
+    const activeSaree = sareeSubcategories.filter((s) => s.count > 0).map((s) => s.name);
+    const activeChudar = chudarSubcategories.filter((c) => c.count > 0).map((c) => c.name);
+    const combined = [...activeSaree, ...activeChudar];
+    const fallback = ["Soft Silk", "Banarasi Silk", "Kanchipuram Silk", "Anarkali Suits", "Organza Sarees"];
+    return Array.from(new Set([...combined, ...fallback])).slice(0, 6);
+  }, [sareeSubcategories, chudarSubcategories]);
+
+  // Max price cap calculated from inventory
+  const maxProductPrice = useMemo(() => {
+    if (products.length === 0) return 30000;
+    const maxVal = Math.max(...products.map((p) => p.base_price));
+    return Math.max(30000, Math.ceil(maxVal / 5000) * 5000);
+  }, [products]);
+
+  // Filtered and sorted products with normalized matching
   const filteredProducts = useMemo(() => {
     return products
       .filter((p) => {
@@ -55,13 +133,33 @@ function ProductsContent() {
         if (selectedCategory !== "all" && p.category !== selectedCategory) {
           return false;
         }
-        // Subcategory filter
-        if (selectedSubcategory && !(p.subcategory || "").toLowerCase().includes(selectedSubcategory.toLowerCase())) {
-          return false;
+        // Subcategory filter with fuzzy token matching
+        if (selectedSubcategory) {
+          const prodSub = (p.subcategory || "").toLowerCase().replace(/\s+/g, " ");
+          const prodName = p.name.toLowerCase().replace(/\s+/g, " ");
+          const prodFab = p.fabric.toLowerCase().replace(/\s+/g, " ");
+          const targetSub = selectedSubcategory.toLowerCase().replace(/\s+/g, " ");
+          const subTokens = targetSub.split(" ").filter((t) => t.length > 2);
+          const matches =
+            prodSub.includes(targetSub) ||
+            targetSub.includes(prodSub) ||
+            (subTokens.length > 0 && subTokens.every((t) => prodSub.includes(t) || prodName.includes(t) || prodFab.includes(t)));
+          if (!matches) {
+            return false;
+          }
         }
-        // Fabric filter
-        if (selectedFabric !== "All Fabrics" && !p.fabric.toLowerCase().includes(selectedFabric.toLowerCase())) {
-          return false;
+        // Fabric filter with normalized matching
+        if (selectedFabric !== "All Fabrics") {
+          const prodFab = p.fabric.toLowerCase().replace(/\s+/g, " ");
+          const targetFab = selectedFabric.toLowerCase().replace(/\s+/g, " ");
+          const fabTokens = targetFab.split(" ").filter((t) => t.length > 3 && !["pure", "silk", "fabric"].includes(t));
+          const matches =
+            prodFab.includes(targetFab) ||
+            targetFab.includes(prodFab) ||
+            (fabTokens.length > 0 && fabTokens.some((t) => prodFab.includes(t)));
+          if (!matches) {
+            return false;
+          }
         }
         // Price filter
         if (p.base_price > priceRange) {
@@ -69,7 +167,7 @@ function ProductsContent() {
         }
         // Search query
         if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase();
+          const q = searchQuery.toLowerCase().trim();
           const matchesName = p.name.toLowerCase().includes(q);
           const matchesFabric = p.fabric.toLowerCase().includes(q);
           const matchesSub = (p.subcategory || "").toLowerCase().includes(q);
@@ -93,7 +191,7 @@ function ProductsContent() {
     setSelectedFabric("All Fabrics");
     setSelectedSubcategory("");
     setSearchQuery("");
-    setPriceRange(30000);
+    setPriceRange(50000);
     setSortBy("featured");
   };
 
@@ -147,7 +245,7 @@ function ProductsContent() {
                   : "border border-amber-300/80 bg-white text-stone-700 hover:bg-amber-50"
               }`}
             >
-              Sarees Only
+              Sarees Only ({products.filter((p) => p.category === "saree").length})
             </button>
 
             <button
@@ -161,17 +259,18 @@ function ProductsContent() {
                   : "border border-emerald-300/80 bg-white text-stone-700 hover:bg-emerald-50"
               }`}
             >
-              Chudars & Salwars Only
+              Chudars & Salwars Only ({products.filter((p) => p.category === "chudar").length})
             </button>
 
             {/* Quick subcategory pills */}
-            {["Kanchipuram Silk", "Banarasi Silk", "Anarkali Suits", "Organza Sarees"].map((sub) => (
+            {topActiveSubcategories.map((sub) => (
               <button
                 key={sub}
                 onClick={() => {
                   setSelectedSubcategory(sub);
-                  if (sub.includes("Silk") || sub.includes("Organza")) setSelectedCategory("saree");
-                  else setSelectedCategory("chudar");
+                  const isChudar = chudarSubcategories.some((c) => c.name === sub && c.count > 0);
+                  if (isChudar) setSelectedCategory("chudar");
+                  else setSelectedCategory("saree");
                 }}
                 className={`hidden md:inline-block rounded-full px-3.5 py-2 text-xs transition ${
                   selectedSubcategory === sub
@@ -269,7 +368,7 @@ function ProductsContent() {
                   onChange={(e) => setSelectedFabric(e.target.value)}
                   className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-800 outline-none focus:border-amber-600"
                 >
-                  {FABRICS_LIST.map((fab) => (
+                  {availableFabrics.map((fab) => (
                     <option key={fab} value={fab}>{fab}</option>
                   ))}
                 </select>
@@ -284,16 +383,16 @@ function ProductsContent() {
                 <input
                   suppressHydrationWarning
                   type="range"
-                  min="5000"
-                  max="30000"
-                  step="1000"
+                  min="500"
+                  max={maxProductPrice}
+                  step="500"
                   value={priceRange}
                   onChange={(e) => setPriceRange(Number(e.target.value))}
-                  className="w-full accent-amber-700"
+                  className="w-full accent-amber-700 cursor-pointer"
                 />
                 <div className="flex justify-between text-[10px] text-stone-400 mt-1">
-                  <span>Rs. 5,000</span>
-                  <span>Rs. 30,000</span>
+                  <span>Rs. 500</span>
+                  <span>Rs. {maxProductPrice.toLocaleString("en-IN")}+</span>
                 </div>
               </div>
 
@@ -303,18 +402,23 @@ function ProductsContent() {
                   Saree Subcategories
                 </p>
                 <div className="space-y-1.5 text-xs text-stone-600">
-                  {["Kanchipuram Silk", "Banarasi Silk", "Organza Sarees", "Chiffon & Georgette"].map((sub) => (
+                  {sareeSubcategories.map(({ name, count }) => (
                     <button
-                      key={sub}
+                      key={name}
                       onClick={() => {
                         setSelectedCategory("saree");
-                        setSelectedSubcategory(sub);
+                        setSelectedSubcategory(name);
                       }}
-                      className={`block w-full text-left transition ${
-                        selectedSubcategory === sub ? "font-bold text-amber-900" : "hover:text-stone-900"
+                      className={`flex items-center justify-between w-full text-left transition ${
+                        selectedSubcategory === name ? "font-bold text-amber-900" : "hover:text-stone-900"
                       }`}
                     >
-                      &bull; {sub}
+                      <span>&bull; {name}</span>
+                      {count > 0 && (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                          {count}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -325,18 +429,23 @@ function ProductsContent() {
                   Chudar Subcategories
                 </p>
                 <div className="space-y-1.5 text-xs text-stone-600">
-                  {["Anarkali Suits", "Straight Cut Salwar", "Palazzo Suits", "Sharara & Gharara Sets"].map((sub) => (
+                  {chudarSubcategories.map(({ name, count }) => (
                     <button
-                      key={sub}
+                      key={name}
                       onClick={() => {
                         setSelectedCategory("chudar");
-                        setSelectedSubcategory(sub);
+                        setSelectedSubcategory(name);
                       }}
-                      className={`block w-full text-left transition ${
-                        selectedSubcategory === sub ? "font-bold text-emerald-900" : "hover:text-stone-900"
+                      className={`flex items-center justify-between w-full text-left transition ${
+                        selectedSubcategory === name ? "font-bold text-emerald-900" : "hover:text-stone-900"
                       }`}
                     >
-                      &bull; {sub}
+                      <span>&bull; {name}</span>
+                      {count > 0 && (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                          {count}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -423,6 +532,155 @@ function ProductsContent() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Filter Slide-Over Drawer */}
+      {mobileFilterOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm lg:hidden animate-in fade-in duration-200">
+          <div className="relative w-full max-w-xs bg-white h-full p-6 shadow-2xl overflow-y-auto space-y-6">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-stone-900">
+                Refine Creations
+              </h3>
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                className="rounded-full p-1 text-stone-400 hover:text-stone-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Search */}
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                Search Handlooms
+              </label>
+              <div className="relative">
+                <Search className="absolute top-2.5 left-2.5 h-3.5 w-3.5 text-stone-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search silk, zari..."
+                  className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2 pr-3 pl-8 text-xs outline-none focus:border-amber-600"
+                />
+              </div>
+            </div>
+
+            {/* Fabric */}
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                Authentic Fabric Weave
+              </label>
+              <select
+                value={selectedFabric}
+                onChange={(e) => setSelectedFabric(e.target.value)}
+                className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-800 outline-none focus:border-amber-600"
+              >
+                {availableFabrics.map((fab) => (
+                  <option key={fab} value={fab}>{fab}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Price Cap */}
+            <div>
+              <div className="flex items-center justify-between text-xs font-semibold text-stone-700 mb-1.5">
+                <span>Price Cap</span>
+                <span className="text-amber-900 font-bold">Up to Rs. {priceRange.toLocaleString("en-IN")}</span>
+              </div>
+              <input
+                type="range"
+                min="500"
+                max={maxProductPrice}
+                step="500"
+                value={priceRange}
+                onChange={(e) => setPriceRange(Number(e.target.value))}
+                className="w-full accent-amber-700 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-stone-400 mt-1">
+                <span>Rs. 500</span>
+                <span>Rs. {maxProductPrice.toLocaleString("en-IN")}+</span>
+              </div>
+            </div>
+
+            {/* Saree Subcategories */}
+            <div className="border-t border-stone-100 pt-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-800 mb-2">
+                Saree Subcategories
+              </p>
+              <div className="space-y-1.5 text-xs text-stone-600">
+                {sareeSubcategories.map(({ name, count }) => (
+                  <button
+                    key={name}
+                    onClick={() => {
+                      setSelectedCategory("saree");
+                      setSelectedSubcategory(name);
+                      setMobileFilterOpen(false);
+                    }}
+                    className={`flex items-center justify-between w-full text-left transition ${
+                      selectedSubcategory === name ? "font-bold text-amber-900" : "hover:text-stone-900"
+                    }`}
+                  >
+                    <span>&bull; {name}</span>
+                    {count > 0 && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Chudar Subcategories */}
+            <div className="border-t border-stone-100 pt-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-2">
+                Chudar Subcategories
+              </p>
+              <div className="space-y-1.5 text-xs text-stone-600">
+                {chudarSubcategories.map(({ name, count }) => (
+                  <button
+                    key={name}
+                    onClick={() => {
+                      setSelectedCategory("chudar");
+                      setSelectedSubcategory(name);
+                      setMobileFilterOpen(false);
+                    }}
+                    className={`flex items-center justify-between w-full text-left transition ${
+                      selectedSubcategory === name ? "font-bold text-emerald-900" : "hover:text-stone-900"
+                    }`}
+                  >
+                    <span>&bull; {name}</span>
+                    {count > 0 && (
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-4 space-y-2 border-t border-stone-100">
+              <button
+                onClick={() => {
+                  resetFilters();
+                  setMobileFilterOpen(false);
+                }}
+                className="w-full rounded-xl border border-stone-300 py-2.5 text-xs font-semibold text-stone-700"
+              >
+                Reset All Filters
+              </button>
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                className="w-full rounded-xl bg-stone-900 py-2.5 text-xs font-bold text-white shadow"
+              >
+                Show {filteredProducts.length} Results
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
