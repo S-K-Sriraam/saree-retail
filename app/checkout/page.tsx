@@ -7,15 +7,15 @@ import confetti from "canvas-confetti";
 import { 
   ShieldCheck, 
   Truck, 
-  CreditCard, 
   QrCode, 
-  Building2, 
-  Banknote, 
   CheckCircle2, 
   Sparkles, 
   ArrowRight,
   ShoppingBag,
-  ChevronRight
+  ChevronRight,
+  Upload,
+  Copy,
+  Check
 } from "lucide-react";
 import { useBoutique } from "@/lib/store";
 import { Order } from "@/lib/mock-data";
@@ -42,10 +42,32 @@ export default function CheckoutPage() {
   const [state, setState] = useState("");
   const [pincode, setPincode] = useState("");
 
-  const [paymentMethod, setPaymentMethod] = useState<"upi" | "card" | "netbanking" | "cod">("upi");
-  const [upiId, setUpiId] = useState("");
+  // Payment Confirmation State
+  const [hasConfirmedScreenshot, setHasConfirmedScreenshot] = useState(false);
+  const [screenshotFileName, setScreenshotFileName] = useState<string | null>(null);
+  const [screenshotData, setScreenshotData] = useState<string | null>(null);
+  const [copiedNumber, setCopiedNumber] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+
+  const handleCopyNumber = () => {
+    navigator.clipboard.writeText("9626865214");
+    setCopiedNumber(true);
+    setTimeout(() => setCopiedNumber(false), 2000);
+  };
+
+  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setScreenshotFileName(file.name);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setScreenshotData(reader.result as string);
+        setHasConfirmedScreenshot(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmitOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,10 +84,11 @@ export default function CheckoutPage() {
         items: cart,
         subtotal: cartSubtotal,
         discount: cartDiscount,
-        tax: cartTax,
+        tax: 0,
         shipping: cartShipping,
         total: cartTotal,
-        paymentMethod
+        paymentMethod: "GPay (9626865214)",
+        paymentScreenshot: screenshotData || undefined
       });
 
       // Confetti burst!
@@ -133,6 +156,26 @@ export default function CheckoutPage() {
                 <span className="text-stone-500 block">Tracking: {placedOrder.trackingNumber}</span>
               </div>
             </div>
+          </div>
+
+          {/* GPay Confirmation Note & WhatsApp Direct Link */}
+          <div className="mt-6 rounded-2xl border border-amber-300 bg-amber-50/80 p-5 text-left text-xs space-y-3">
+            <div className="flex items-center gap-2 text-stone-900 font-bold">
+              <QrCode className="h-4 w-4 text-amber-800" />
+              <span>Payment Details: Google Pay (GPay) Mobile: 9626865214</span>
+            </div>
+            <p className="text-stone-700 leading-relaxed text-[11px]">
+              If you haven't sent your payment screenshot yet, please transfer <strong>Rs. {Math.round(placedOrder.total).toLocaleString("en-IN")}</strong> to <strong>9626865214</strong> and share the screenshot via WhatsApp mentioning Order #{placedOrder.orderNumber}.
+            </p>
+            <a
+              href={`https://wa.me/919626865214?text=Hello%20Geethavarnam%20Boutique,%20here%20is%20my%20payment%20screenshot%20for%20Order%20${placedOrder.orderNumber}%20(Amount:%20Rs.%20${Math.round(placedOrder.total)})`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-800 px-4 py-2 text-xs font-bold text-white shadow hover:bg-emerald-900 transition"
+            >
+              <span>Share Screenshot via WhatsApp</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </a>
           </div>
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
@@ -295,99 +338,93 @@ export default function CheckoutPage() {
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-stone-900 font-serif-luxury">
-                    Select Secure Payment Option
+                    Payment Method
                   </h2>
-                  <p className="text-xs text-stone-500">256-bit encrypted luxury transaction gateway.</p>
+                  <p className="text-xs text-stone-500">Pay directly via Google Pay (GPay) or UPI.</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("upi")}
-                  className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition ${
-                    paymentMethod === "upi"
-                      ? "border-amber-600 bg-amber-50 shadow-sm"
-                      : "border-stone-200 hover:border-stone-300"
-                  }`}
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-900">
-                    <QrCode className="h-5 w-5" />
+              {/* Single GPay Payment Display */}
+              <div className="rounded-2xl border-2 border-amber-600/50 bg-gradient-to-br from-amber-50/60 via-white to-amber-50/30 p-5 shadow-sm space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-amber-200/60 pb-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-600 to-amber-800 text-white shadow-md shrink-0">
+                      <QrCode className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-bold text-stone-900 font-serif-luxury">Google Pay (GPay)</h4>
+                        <span className="rounded-full bg-amber-800/10 px-2.5 py-0.5 text-[10px] font-bold text-amber-900 uppercase">
+                          Official Store UPI
+                        </span>
+                      </div>
+                      <p className="text-xs text-stone-600 mt-0.5">Transfer directly via Google Pay, PhonePe or BHIM</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-stone-900">Instant UPI & QR</h4>
-                    <p className="text-[11px] text-stone-500">GPay, PhonePe, Paytm, BHIM</p>
-                  </div>
-                </button>
 
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("card")}
-                  className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition ${
-                    paymentMethod === "card"
-                      ? "border-amber-600 bg-amber-50 shadow-sm"
-                      : "border-stone-200 hover:border-stone-300"
-                  }`}
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 text-stone-900">
-                    <CreditCard className="h-5 w-5" />
+                  <div className="flex items-center gap-2.5 bg-white px-4 py-2.5 rounded-xl border border-amber-300 shadow-sm self-start sm:self-auto">
+                    <div className="text-left">
+                      <span className="text-[10px] uppercase font-bold text-stone-400 block tracking-wider">GPay Mobile Number</span>
+                      <span className="text-sm font-extrabold text-stone-950 tracking-wider">9626865214</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCopyNumber}
+                      className="ml-2 flex items-center gap-1 rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-800 transition"
+                      title="Copy Mobile Number"
+                    >
+                      {copiedNumber ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                      <span>{copiedNumber ? "Copied" : "Copy"}</span>
+                    </button>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-stone-900">Credit / Debit Card</h4>
-                    <p className="text-[11px] text-stone-500">Visa, Mastercard, Amex, RuPay</p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("netbanking")}
-                  className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition ${
-                    paymentMethod === "netbanking"
-                      ? "border-amber-600 bg-amber-50 shadow-sm"
-                      : "border-stone-200 hover:border-stone-300"
-                  }`}
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 text-stone-900">
-                    <Building2 className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-stone-900">Net Banking</h4>
-                    <p className="text-[11px] text-stone-500">All major Indian banks supported</p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("cod")}
-                  className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition ${
-                    paymentMethod === "cod"
-                      ? "border-amber-600 bg-amber-50 shadow-sm"
-                      : "border-stone-200 hover:border-stone-300"
-                  }`}
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 text-stone-900">
-                    <Banknote className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-stone-900">Cash on Delivery (COD)</h4>
-                    <p className="text-[11px] text-stone-500">Pay upon insured doorstep delivery</p>
-                  </div>
-                </button>
-              </div>
-
-              {paymentMethod === "upi" && (
-                <div className="rounded-2xl bg-amber-50 p-4 text-xs space-y-2 border border-amber-200">
-                  <label className="block font-semibold text-amber-950">Enter Virtual Payment Address (UPI ID):</label>
-                  <input
-                    type="text"
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
-                    placeholder="yourname@upi"
-                    className="w-full rounded-xl border border-amber-300 bg-white p-2.5 text-xs outline-none focus:border-amber-600"
-                  />
-                  <p className="text-[10px] text-amber-800">You will receive an instant payment request notification on your UPI app.</p>
                 </div>
-              )}
+
+                {/* Amount to transfer reminder */}
+                <div className="flex items-center justify-between rounded-xl bg-amber-100/70 px-4 py-3 text-xs text-amber-950 font-medium">
+                  <span>Payable Amount for this Order:</span>
+                  <span className="text-base font-bold text-amber-900">Rs. {Math.round(cartTotal).toLocaleString("en-IN")}</span>
+                </div>
+
+                {/* Optional Screenshot File Upload */}
+                <div className="space-y-2 pt-1">
+                  <label className="block text-xs font-semibold text-stone-800">
+                    Attach Payment Screenshot <span className="text-stone-400 font-normal">(Optional if sharing via WhatsApp)</span>
+                  </label>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    <label className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-xs font-semibold text-stone-700 shadow-sm hover:bg-stone-50 transition">
+                      <Upload className="h-4 w-4 text-amber-800" />
+                      <span>{screenshotFileName ? "Replace Screenshot" : "Choose Screenshot Image"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleScreenshotChange}
+                        className="hidden"
+                      />
+                    </label>
+                    {screenshotFileName && (
+                      <span className="text-xs font-medium text-emerald-800 flex items-center gap-1">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" /> {screenshotFileName}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Required Confirmation Checkbox */}
+                <div className="rounded-xl border border-amber-300/80 bg-white p-4 shadow-sm">
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={hasConfirmedScreenshot}
+                      onChange={(e) => setHasConfirmedScreenshot(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded accent-amber-800 text-amber-800 focus:ring-amber-800 cursor-pointer"
+                    />
+                    <span className="text-xs text-stone-800 leading-relaxed">
+                      <strong className="text-stone-900">Payment Screenshot Confirmation:</strong> I confirm that I will send / have attached the screenshot of the payment to GPay mobile number <strong className="text-amber-900 font-bold">9626865214</strong> for order verification.
+                    </span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 

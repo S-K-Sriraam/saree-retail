@@ -89,7 +89,8 @@ export interface Order {
   shipping: number;
   total: number;
   status: "pending" | "processing" | "handcrafted" | "shipped" | "delivered" | "cancelled";
-  paymentMethod: "upi" | "card" | "netbanking" | "cod";
+  paymentMethod: "gpay" | "upi" | "card" | "netbanking" | "cod" | string;
+  paymentScreenshot?: string;
   trackingNumber?: string;
   estimatedDelivery?: string;
 }
