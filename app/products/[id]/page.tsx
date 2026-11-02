@@ -116,10 +116,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       product,
       quantity,
       {
-        type: tailoringType,
+        type: product.category === "saree" ? "unstitched" : tailoringType,
         size: selectedSize,
-        blouseStitching: product.category === "saree" && tailoringType === "custom_tailored",
-        fallPico: product.category === "saree" && fallPico,
+        blouseStitching: false,
+        fallPico: false,
         bottomStyle: product.category === "chudar" ? bottomStyle : undefined
       },
       selectedColor,
@@ -389,83 +389,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
             )}
 
-            {/* Saree vs Chudar Custom Tailoring Section */}
+            {/* Customization Section (Chudar sizing only; Saree tailoring disabled) */}
             <div className="rounded-2xl border border-amber-900/15 bg-white p-6 shadow-sm space-y-5">
-              {product.category === "saree" ? (
+              {product.category === "chudar" && (
                 <div className="space-y-4">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-stone-900">
-                    1. Blouse & Drape Tailoring Service
-                  </h3>
-
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <button
-                      onClick={() => setTailoringType("standard")}
-                      className={`rounded-2xl border p-3.5 text-left text-xs transition ${
-                        tailoringType === "standard"
-                          ? "border-amber-600 bg-amber-50 font-bold text-amber-950 shadow-sm"
-                          : "border-stone-200 text-stone-700"
-                      }`}
-                    >
-                      <span>Unstitched Blouse Piece</span>
-                      <span className="block text-[10px] font-normal text-stone-500 mt-0.5">
-                        Pure silk 0.8m fabric included in saree length
-                      </span>
-                    </button>
-
-                    <button
-                      onClick={() => setTailoringType("custom_tailored")}
-                      className={`rounded-2xl border p-3.5 text-left text-xs transition ${
-                        tailoringType === "custom_tailored"
-                          ? "border-amber-600 bg-amber-50 font-bold text-amber-950 shadow-sm"
-                          : "border-stone-200 text-stone-700"
-                      }`}
-                    >
-                      <span>Bespoke Tailored Blouse (+Rs. 999)</span>
-                      <span className="block text-[10px] font-normal text-stone-500 mt-0.5">
-                        Designer cut with padded lining & matching tassels
-                      </span>
-                    </button>
-                  </div>
-
-                  {tailoringType === "custom_tailored" && (
-                    <div className="rounded-xl bg-amber-100/60 p-3 text-xs space-y-2 animate-in fade-in">
-                      <p className="font-semibold text-amber-900">Select Standard Bust Size:</p>
-                      <div className="flex gap-2">
-                        {["32", "34", "36", "38", "40", "42", "44"].map((sz) => (
-                          <button
-                            key={sz}
-                            onClick={() => setSelectedSize(sz)}
-                            className={`h-8 w-8 rounded-lg border text-xs font-bold transition ${
-                              selectedSize === sz
-                                ? "border-amber-700 bg-amber-700 text-white"
-                                : "border-stone-300 bg-white text-stone-700"
-                            }`}
-                          >
-                            {sz}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Fall and Pico check */}
-                  <div className="flex items-center gap-2 pt-1">
-                    <input
-                      type="checkbox"
-                      id="fall-check"
-                      checked={fallPico}
-                      onChange={(e) => setFallPico(e.target.checked)}
-                      className="h-4 w-4 rounded text-amber-700 focus:ring-amber-500"
-                    />
-                    <label htmlFor="fall-check" className="text-xs font-medium text-stone-700">
-                      Complimentary Saree Fall & Pico Interlocking (Recommended)
-                    </label>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-stone-900">
-                    1. Select Size & Bottom Wear Styling
+                    Select Size & Bottom Wear Styling
                   </h3>
 
                   <div>
@@ -513,7 +442,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               )}
 
               {/* Quantity & Buy CTAs */}
-              <div className="border-t border-stone-100 pt-5 space-y-3">
+              <div className={product.category === "chudar" ? "border-t border-stone-100 pt-5 space-y-3" : "space-y-3"}>
                 <div className="flex items-center gap-3">
                   <div className={`flex items-center rounded-xl border ${isOutOfStock ? "border-stone-200 bg-stone-100 opacity-60" : "border-stone-300 bg-white"}`}>
                     <button

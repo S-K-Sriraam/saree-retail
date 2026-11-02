@@ -76,10 +76,10 @@ export default function QuickViewModal() {
       product,
       quantity,
       {
-        type: customStitching ? "custom_tailored" : "standard",
+        type: product.category === "saree" ? "unstitched" : (customStitching ? "custom_tailored" : "standard"),
         size: selectedSize,
-        blouseStitching: product.category === "saree" && customStitching,
-        fallPico: product.category === "saree" && fallPico,
+        blouseStitching: false,
+        fallPico: false,
         bottomStyle: product.category === "chudar" ? bottomStyle : undefined
       },
       selectedColor,
@@ -244,53 +244,9 @@ export default function QuickViewModal() {
             </div>
           )}
 
-          {/* Saree/Chudar Customization Options */}
-          <div className="mt-6 space-y-4 border-t border-stone-200 pt-5">
-            {product.category === "saree" ? (
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-stone-800">
-                  Blouse & Drape Tailoring:
-                </p>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setCustomStitching(false)}
-                    className={`rounded-xl border p-2.5 text-left text-xs transition ${
-                      !customStitching
-                        ? "border-amber-600 bg-amber-50 font-bold text-amber-950"
-                        : "border-stone-200 text-stone-700"
-                    }`}
-                  >
-                    Unstitched Blouse Piece
-                    <span className="block text-[10px] font-normal text-stone-500">Includes 0.8m pure silk fabric</span>
-                  </button>
-
-                  <button
-                    onClick={() => setCustomStitching(true)}
-                    className={`rounded-xl border p-2.5 text-left text-xs transition ${
-                      customStitching
-                        ? "border-amber-600 bg-amber-50 font-bold text-amber-950"
-                        : "border-stone-200 text-stone-700"
-                    }`}
-                  >
-                    Bespoke Tailored Blouse (+Rs. 999)
-                    <span className="block text-[10px] font-normal text-stone-500">Padded lining & designer back</span>
-                  </button>
-                </div>
-
-                <div className="mt-3 flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="modal-fall"
-                    checked={fallPico}
-                    onChange={(e) => setFallPico(e.target.checked)}
-                    className="h-4 w-4 rounded text-amber-700 focus:ring-amber-500"
-                  />
-                  <label htmlFor="modal-fall" className="text-xs text-stone-700">
-                    Complimentary Fall & Pico Hemming (Free)
-                  </label>
-                </div>
-              </div>
-            ) : (
+          {/* Chudar Customization Options (if applicable) */}
+          {product.category === "chudar" && (
+            <div className="mt-6 space-y-4 border-t border-stone-200 pt-5">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-stone-800">
                   Select Size & Bottom Style:
@@ -327,10 +283,11 @@ export default function QuickViewModal() {
                   ))}
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Quantity and Actions */}
-            <div className="flex items-center gap-4 pt-2">
+          {/* Quantity and Actions */}
+          <div className="flex items-center gap-4 pt-4 border-t border-stone-200 mt-4">
               <div className={`flex items-center rounded-xl border ${isOutOfStock ? "border-stone-200 bg-stone-100 opacity-60" : "border-stone-300"}`}>
                 <button
                   type="button"
@@ -394,6 +351,5 @@ export default function QuickViewModal() {
           </div>
         </div>
       </div>
-    </div>
   );
 }
