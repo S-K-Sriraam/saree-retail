@@ -755,20 +755,9 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (localProds.length > 0) {
           showToast(`⏳ Uploading ${localProds.length} product(s) to database...`);
 
-          // Strip base64 images before sending to avoid Vercel 4.5MB body limit
-          const sanitizedProds = localProds.map((p: any) => ({
-            ...p,
-            images: (p.images || []).map((img: string) =>
-              img && img.startsWith("data:") ? "/images/placeholder.jpg" : img
-            ).filter(Boolean),
-            color_variants: (p.color_variants || []).map((v: any) => ({
-              ...v,
-              image: v.image?.startsWith("data:") ? "" : (v.image || "")
-            }))
-          }));
-
+          // Push local products to Supabase
           const pushResults = await Promise.all(
-            sanitizedProds.map((p: any) =>
+            localProds.map((p: any) =>
               fetch("/api/products", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

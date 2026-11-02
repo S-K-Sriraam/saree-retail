@@ -106,8 +106,11 @@ export default function QuickViewModal() {
         <div className="flex flex-col bg-stone-100 md:w-1/2">
           <div className="relative aspect-[3/4] w-full overflow-hidden">
             <img
-              src={colorImageOverride || product.images[selectedImage] || product.images[0]}
+              src={colorImageOverride || product.images[selectedImage] || product.images[0] || "/images/placeholder.jpg"}
               alt={product.name}
+              onError={(e) => {
+                e.currentTarget.src = "/images/placeholder.jpg";
+              }}
               className="h-full w-full object-cover object-center transition-all duration-300"
             />
             <span className="absolute top-4 left-4 rounded-full bg-amber-900/90 px-3 py-1 text-xs font-semibold text-amber-200 backdrop-blur-md">

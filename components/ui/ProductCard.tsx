@@ -85,8 +85,11 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-stone-100">
         <Link href={`/products/${product.slug || product.id}`}>
           <img
-            src={displayImage}
+            src={displayImage || "/images/placeholder.jpg"}
             alt={product.name}
+            onError={(e) => {
+              e.currentTarget.src = "/images/placeholder.jpg";
+            }}
             className={`h-full w-full object-cover object-center transition duration-700 ease-out group-hover:scale-105 ${
               isOutOfStock ? "grayscale-[25%] opacity-80" : ""
             }`}

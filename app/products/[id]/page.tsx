@@ -106,7 +106,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     : 0;
 
   const savingsAmount = product.compare_price ? product.compare_price - product.base_price : 0;
-  const currentHeroImage = activeImageOverride || product.images[selectedImageIndex] || product.images[0];
+  const currentHeroImage = activeImageOverride || product.images[selectedImageIndex] || product.images[0] || "/images/placeholder.jpg";
 
   const handleAddToCart = () => {
     const matchedColor = availableColors.find(c => c.name.toLowerCase() === selectedColor.toLowerCase());
@@ -195,6 +195,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   <img
                     src={currentHeroImage}
                     alt={product.name}
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/placeholder.jpg";
+                    }}
                     className="h-full w-full object-cover object-center transition-all duration-300"
                   />
 
@@ -347,15 +350,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       >
                         {/* Mini Thumbnail or Color Swatch */}
                         <div className="relative h-12 w-10 shrink-0 overflow-hidden rounded-xl bg-stone-100 border border-stone-200 shadow-sm">
-                          {colorOpt.image ? (
+                          {colorOpt.image && !colorOpt.image.includes("placeholder") ? (
                             <img
                               src={colorOpt.image}
                               alt={colorOpt.name}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
                               className="h-full w-full object-cover"
                             />
                           ) : (
                             <div
-                              className="h-full w-full"
+                              className="h-full w-full flex items-center justify-center"
                               style={{ backgroundColor: colorOpt.color_code }}
                             />
                           )}

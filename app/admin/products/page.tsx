@@ -46,18 +46,43 @@ export default function AdminProductsPage() {
   const [colorVariants, setColorVariants] = useState<ColorVariant[]>([]);
   const [formShortDesc, setFormShortDesc] = useState("Authentic handcrafted heirloom with pure zari pallu.");
   const [formPreset, setFormPreset] = useState<"kanchipuram" | "banarasi" | "organza" | "velvet" | "chiffon">("kanchipuram");
+  const [isUploadingMain, setIsUploadingMain] = useState(false);
+  const [uploadingVariantIdx, setUploadingVariantIdx] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setFormImageUrl(dataUrl);
-      setImagePreview(dataUrl);
-    };
-    reader.readAsDataURL(file);
+
+    // Show local preview immediately
+    const localUrl = URL.createObjectURL(file);
+    setImagePreview(localUrl);
+    setIsUploadingMain(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setFormImageUrl(data.url);
+        setImagePreview(data.url);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const dUrl = ev.target?.result as string;
+          setFormImageUrl(dUrl);
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch (err) {
+      console.warn("Upload error, using local fallback:", err);
+    } finally {
+      setIsUploadingMain(false);
+    }
   };
 
   const addColorVariant = () => {
@@ -79,13 +104,33 @@ export default function AdminProductsPage() {
     setColorVariants(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleVariantImageUpload = (index: number, file: File) => {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      updateColorVariant(index, "image", dataUrl);
-    };
-    reader.readAsDataURL(file);
+  const handleVariantImageUpload = async (index: number, file: File) => {
+    const localUrl = URL.createObjectURL(file);
+    updateColorVariant(index, "image", localUrl);
+    setUploadingVariantIdx(index);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        updateColorVariant(index, "image", data.url);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          updateColorVariant(index, "image", ev.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch (err) {
+      console.warn("Variant upload note:", err);
+    } finally {
+      setUploadingVariantIdx(null);
+    }
   };
 
   const openAddModal = () => {
@@ -314,9 +359,12 @@ export default function AdminProductsPage() {
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <img
-                        src={product.images[0]}
+                        src={product.images[0] || "/images/placeholder.jpg"}
                         alt=""
-                        className="h-12 w-10 shrink-0 rounded-lg object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/images/placeholder.jpg";
+                        }}
+                        className="h-12 w-10 shrink-0 rounded-lg object-cover border border-white/10"
                       />
                       <div>
                         <p className="font-bold text-white line-clamp-1">{product.name}</p>
@@ -635,7 +683,12 @@ export default function AdminProductsPage() {
                   onClick={() => fileInputRef.current?.click()}
                   className="mt-1 cursor-pointer rounded-xl border-2 border-dashed border-amber-500/30 bg-white/5 p-4 text-center transition hover:border-amber-400 hover:bg-white/10"
                 >
-                  {imagePreview ? (
+                  {isUploadingMain ? (
+                    <div className="py-4 flex flex-col items-center justify-center">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent mb-2" />
+                      <p className="text-xs font-semibold text-amber-300">Uploading to Cloud Storage...</p>
+                    </div>
+                  ) : imagePreview ? (
                     <div className="flex items-center gap-4">
                       <img
                         src={imagePreview}
@@ -643,7 +696,7 @@ export default function AdminProductsPage() {
                         className="h-20 w-16 rounded-lg object-cover border border-amber-500/30 shrink-0"
                       />
                       <div className="text-left">
-                        <p className="text-xs font-semibold text-amber-300">Image uploaded ✓</p>
+                        <p className="text-xs font-semibold text-amber-300">Image attached ✓</p>
                         <p className="text-[10px] text-stone-400 mt-1">Click to replace with a different image</p>
                       </div>
                     </div>
@@ -651,9 +704,24 @@ export default function AdminProductsPage() {
                     <div className="py-4">
                       <Upload className="mx-auto h-8 w-8 text-amber-500/50 mb-2" />
                       <p className="text-xs font-semibold text-stone-300">Click to upload garment image</p>
-                      <p className="text-[10px] text-stone-500 mt-1">PNG, JPG, JPEG or WEBP • Max 5 MB</p>
+                      <p className="text-[10px] text-stone-500 mt-1">PNG, JPG, JPEG or WEBP • Uploads to Cloud</p>
                     </div>
                   )}
+                </div>
+
+                {/* Direct Image URL input option */}
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-[11px] text-stone-400 shrink-0">Or Image URL:</span>
+                  <input
+                    type="url"
+                    value={formImageUrl && formImageUrl.startsWith("http") ? formImageUrl : ""}
+                    onChange={(e) => {
+                      setFormImageUrl(e.target.value);
+                      setImagePreview(e.target.value);
+                    }}
+                    placeholder="https://example.com/saree.jpg"
+                    className="flex-1 rounded-xl border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white outline-none focus:border-amber-400"
+                  />
                 </div>
               </div>
 
@@ -752,7 +820,7 @@ export default function AdminProductsPage() {
                                 htmlFor={`variant-file-${idx}`}
                                 className="cursor-pointer rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-stone-200 hover:bg-white/20 transition flex-1 text-center truncate"
                               >
-                                {variant.image ? "Change Photo ✓" : "Upload Color Photo"}
+                                {uploadingVariantIdx === idx ? "Uploading..." : variant.image ? "Change Photo ✓" : "Upload Color Photo"}
                               </label>
                             </div>
                           </div>
