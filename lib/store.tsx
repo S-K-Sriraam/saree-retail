@@ -742,6 +742,7 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Supabase has products — use them as source of truth
         setProducts(result.data);
         try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(result.data)); } catch {}
+        showToast(`✅ Synced ${result.data.length} product(s) from database.`);
       } else {
         // Supabase is empty — push ALL local/state products up to Supabase
         const localProds = products.length > 0 ? products : (() => {
@@ -752,9 +753,22 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         })();
 
         if (localProds.length > 0) {
-          console.log(`Pushing ${localProds.length} local product(s) to Supabase...`);
+          showToast(`⏳ Uploading ${localProds.length} product(s) to database...`);
+
+          // Strip base64 images before sending to avoid Vercel 4.5MB body limit
+          const sanitizedProds = localProds.map((p: any) => ({
+            ...p,
+            images: (p.images || []).map((img: string) =>
+              img && img.startsWith("data:") ? "/images/placeholder.jpg" : img
+            ).filter(Boolean),
+            color_variants: (p.color_variants || []).map((v: any) => ({
+              ...v,
+              image: v.image?.startsWith("data:") ? "" : (v.image || "")
+            }))
+          }));
+
           const pushResults = await Promise.all(
-            localProds.map((p: any) =>
+            sanitizedProds.map((p: any) =>
               fetch("/api/products", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -767,9 +781,10 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
           const successes = pushResults.filter((r: any) => r.success).length;
           const failures = pushResults.filter((r: any) => !r.success);
-          console.log(`Sync complete: ${successes}/${localProds.length} pushed successfully.`);
+
           if (failures.length > 0) {
-            console.warn("Failed syncs:", failures.map((f: any) => f.error));
+            console.error("Sync failures:", failures.map((f: any) => f.error));
+            showToast(`⚠️ ${successes} uploaded, ${failures.length} failed. Check console.`);
           }
 
           // Re-fetch from Supabase to confirm and get canonical data
@@ -778,11 +793,17 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           if (verifyResult.success && Array.isArray(verifyResult.data) && verifyResult.data.length > 0) {
             setProducts(verifyResult.data);
             try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(verifyResult.data)); } catch {}
+            showToast(`✅ ${verifyResult.data.length} product(s) saved to database!`);
+          } else if (failures.length === 0) {
+            showToast("⚠️ Products uploaded but could not verify. Check database.");
           }
+        } else {
+          showToast("ℹ️ No local products to sync.");
         }
       }
     } catch (e) {
       console.warn("Refresh products error:", e);
+      showToast("❌ Sync failed. Check your connection.");
     }
   };
 

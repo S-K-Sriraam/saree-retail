@@ -16,6 +16,64 @@ const HEADERS = {
   Prefer: "return=representation"
 };
 
+/**
+ * Strips base64-encoded images from the images array.
+ * Base64 images can be several MB, causing Vercel's 4.5MB body limit to be exceeded.
+ * They are replaced with a placeholder URL so the product row is still inserted.
+ */
+function sanitizeImages(images: string[] | undefined): string[] {
+  if (!images || images.length === 0) return ["/images/placeholder.jpg"];
+  const safe = images
+    .filter(Boolean)
+    .map(url => (url.startsWith("data:") ? "/images/placeholder.jpg" : url));
+  return safe.length > 0 ? safe : ["/images/placeholder.jpg"];
+}
+
+/**
+ * Strips base64 images from color_variants too.
+ */
+function sanitizeColorVariants(variants: any[]): any[] {
+  if (!Array.isArray(variants)) return [];
+  return variants.map(v => ({
+    ...v,
+    image: v.image?.startsWith("data:") ? "" : (v.image || "")
+  }));
+}
+
+/**
+ * Build the safe Supabase row from a Product object.
+ * Strips base64 images to avoid exceeding payload limits.
+ */
+function buildRow(product: Partial<Product> & { id: string }) {
+  return {
+    id: product.id,
+    name: product.name || "Handloom Piece",
+    slug: product.slug || (product.name || product.id).toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    category: product.category || "saree",
+    subcategory: product.subcategory || (product.category === "saree" ? "Saree Couture" : "Chudar & Salwar"),
+    base_price: Number(product.base_price || 0),
+    compare_price: product.compare_price || null,
+    fabric: product.fabric || "Pure Handloom Silk",
+    weave_type: product.weave_type || "Handloom Jacquard",
+    work_type: product.work_type || "Pure Zari Brocade",
+    color: product.color || "Base Color",
+    color_code: product.color_code || "#881337",
+    color_variants: sanitizeColorVariants(product.color_variants || []),
+    description: product.description || `${product.name}. Handcrafted with fine artisanal needlework.`,
+    short_description: product.short_description || product.name || "",
+    sku: product.sku || `GV-${Date.now().toString(36).toUpperCase()}`,
+    stock: Number(product.stock ?? 0),
+    is_featured: product.is_featured ?? true,
+    is_active: product.is_active ?? true,
+    rating: product.rating || 5,
+    reviews_count: product.reviews_count || 0,
+    images: sanitizeImages(product.images as string[]),
+    three_d_preset: product.three_d_preset || "kanchipuram",
+    details: product.details || {},
+    created_at: new Date().toISOString()
+  };
+}
+
 // GET /api/products - Fetch all products from Supabase
 export async function GET() {
   try {
@@ -42,34 +100,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const product: Product = await request.json();
-
-    const row = {
-      id: product.id,
-      name: product.name,
-      slug: product.slug || product.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      category: product.category || "saree",
-      subcategory: product.subcategory || (product.category === "saree" ? "Saree Couture" : "Chudar & Salwar"),
-      base_price: Number(product.base_price || 0),
-      compare_price: product.compare_price || null,
-      fabric: product.fabric || "Pure Handloom Silk",
-      weave_type: product.weave_type || "Handloom Jacquard",
-      work_type: product.work_type || "Pure Zari Brocade",
-      color: product.color || "Base Color",
-      color_code: product.color_code || "#881337",
-      color_variants: product.color_variants || [],
-      description: product.description || `${product.name}. Handcrafted in ${product.fabric || "fine silk"} with fine artisanal needlework and opulent drape.`,
-      short_description: product.short_description || product.name,
-      sku: product.sku || `GV-${Date.now().toString(36).toUpperCase()}`,
-      stock: Number(product.stock ?? 10),
-      is_featured: product.is_featured ?? true,
-      is_active: product.is_active ?? true,
-      rating: product.rating || 5,
-      reviews_count: product.reviews_count || 0,
-      images: product.images && product.images.length > 0 ? product.images : ["/images/placeholder.jpg"],
-      three_d_preset: product.three_d_preset || "kanchipuram",
-      details: product.details || {},
-      created_at: new Date().toISOString()
-    };
+    const row = buildRow(product);
 
     const res = await fetch(`${SUPABASE_URL}/rest/v1/products`, {
       method: "POST",
@@ -124,39 +155,8 @@ export async function PUT(request: Request) {
     // Perform an UPSERT to sync it immediately.
     if (Array.isArray(updatedRows) && updatedRows.length === 0) {
       console.warn(`Product ${id} not found on Supabase. Upserting complete product record...`);
-      const fullProd = {
-        ...(product || {}),
-        ...updates,
-        id
-      };
-
-      const row = {
-        id: fullProd.id,
-        name: fullProd.name || "Handloom Piece",
-        slug: fullProd.slug || fullProd.id,
-        category: fullProd.category || "saree",
-        subcategory: fullProd.subcategory || (fullProd.category === "saree" ? "Saree Couture" : "Chudar & Salwar"),
-        base_price: Number(fullProd.base_price || 0),
-        compare_price: fullProd.compare_price || null,
-        fabric: fullProd.fabric || "Pure Silk",
-        weave_type: fullProd.weave_type || "Handloom Jacquard",
-        work_type: fullProd.work_type || "Pure Zari Brocade",
-        color: fullProd.color || "Multi-color",
-        color_code: fullProd.color_code || "#881337",
-        color_variants: fullProd.color_variants || [],
-        description: fullProd.description || `${fullProd.name}. Handcrafted with fine artisanal needlework.`,
-        short_description: fullProd.short_description || fullProd.name,
-        sku: fullProd.sku || `GV-${Date.now().toString(36).toUpperCase()}`,
-        stock: Number(fullProd.stock ?? 0),
-        is_featured: fullProd.is_featured ?? true,
-        is_active: fullProd.is_active ?? true,
-        rating: fullProd.rating || 5,
-        reviews_count: fullProd.reviews_count || 0,
-        images: fullProd.images && fullProd.images.length > 0 ? fullProd.images : ["/images/placeholder.jpg"],
-        three_d_preset: fullProd.three_d_preset || "kanchipuram",
-        details: fullProd.details || {},
-        created_at: new Date().toISOString()
-      };
+      const fullProd = { ...(product || {}), ...updates, id };
+      const row = buildRow(fullProd);
 
       const upsertRes = await fetch(`${SUPABASE_URL}/rest/v1/products`, {
         method: "POST",
