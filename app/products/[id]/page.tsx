@@ -85,8 +85,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [selectedSize, setSelectedSize] = useState<string>("M");
   const [fallPico, setFallPico] = useState<boolean>(true);
   const [bottomStyle, setBottomStyle] = useState<string>("Chudar");
-  const [pincode, setPincode] = useState<string>("560038");
-  const [pincodeChecked, setPincodeChecked] = useState<boolean>(false);
 
   if (!product) {
     return (
@@ -468,39 +466,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   </button>
                 )}
               </div>
-            </div>
-
-            {/* Pincode checker */}
-            <div className="rounded-2xl border border-stone-200 bg-white p-4 text-xs">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-stone-700 font-semibold">
-                  <MapPin className="h-4 w-4 text-amber-700" />
-                  <span>Delivery Availability:</span>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={pincode}
-                    onChange={(e) => setPincode(e.target.value)}
-                    maxLength={6}
-                    className="w-24 rounded-lg border border-stone-300 px-2 py-1 text-center font-bold text-xs"
-                  />
-                  <button
-                    onClick={() => {
-                      setPincodeChecked(true);
-                      showToast(`Express delivery available to PIN ${pincode}!`);
-                    }}
-                    className="rounded-lg bg-stone-900 px-3 py-1 font-bold text-white"
-                  >
-                    Check
-                  </button>
-                </div>
-              </div>
-              {pincodeChecked && (
-                <p className="mt-2 text-[11px] text-emerald-800 font-medium flex items-center gap-1">
-                  <Check className="h-3.5 w-3.5" /> Guaranteed Delivery within 3-5 business days to {pincode}.
-                </p>
-              )}
             </div>
 
             {/* Heritage Craft Specifications Accordion / Table */}
