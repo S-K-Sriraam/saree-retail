@@ -214,9 +214,15 @@ export default function AdminProductsPage() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => {
+            onClick={async () => {
               setIsSyncing(true);
-              refreshProducts().finally(() => setTimeout(() => setIsSyncing(false), 600));
+              try {
+                await refreshProducts();
+              } catch (e) {
+                console.error("Sync error:", e);
+              } finally {
+                setTimeout(() => setIsSyncing(false), 600);
+              }
             }}
             disabled={isSyncing}
             className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-3 py-2.5 text-xs font-semibold text-stone-300 hover:bg-white/10 hover:text-white transition"

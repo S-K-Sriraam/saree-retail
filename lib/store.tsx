@@ -730,14 +730,56 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Refresh products from Supabase
+  // Refresh products — bidirectional sync with Supabase
+  // If Supabase has products → pull them down (source of truth)
+  // If Supabase is empty but we have local products → push them up first, then pull
   const refreshProducts = async () => {
     try {
       const res = await fetch("/api/products", { cache: "no-store" });
       const result = await res.json();
-      if (result.success && Array.isArray(result.data)) {
+
+      if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+        // Supabase has products — use them as source of truth
         setProducts(result.data);
         try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(result.data)); } catch {}
+      } else {
+        // Supabase is empty — push ALL local/state products up to Supabase
+        const localProds = products.length > 0 ? products : (() => {
+          try {
+            const saved = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+            return saved ? JSON.parse(saved) : [];
+          } catch { return []; }
+        })();
+
+        if (localProds.length > 0) {
+          console.log(`Pushing ${localProds.length} local product(s) to Supabase...`);
+          const pushResults = await Promise.all(
+            localProds.map((p: any) =>
+              fetch("/api/products", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(p)
+              })
+                .then(r => r.json())
+                .catch(err => ({ success: false, error: String(err) }))
+            )
+          );
+
+          const successes = pushResults.filter((r: any) => r.success).length;
+          const failures = pushResults.filter((r: any) => !r.success);
+          console.log(`Sync complete: ${successes}/${localProds.length} pushed successfully.`);
+          if (failures.length > 0) {
+            console.warn("Failed syncs:", failures.map((f: any) => f.error));
+          }
+
+          // Re-fetch from Supabase to confirm and get canonical data
+          const verifyRes = await fetch("/api/products", { cache: "no-store" });
+          const verifyResult = await verifyRes.json();
+          if (verifyResult.success && Array.isArray(verifyResult.data) && verifyResult.data.length > 0) {
+            setProducts(verifyResult.data);
+            try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(verifyResult.data)); } catch {}
+          }
+        }
       }
     } catch (e) {
       console.warn("Refresh products error:", e);
