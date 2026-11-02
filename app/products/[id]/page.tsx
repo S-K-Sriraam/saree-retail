@@ -18,7 +18,6 @@ import {
   MapPin
 } from "lucide-react";
 import { useBoutique } from "@/lib/store";
-import SareeDrapeStudio from "@/components/three/SareeDrapeStudio";
 import ProductCard from "@/components/ui/ProductCard";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -31,7 +30,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const isOutOfStock = (product?.stock ?? 1) <= 0;
   const isLowStock = !isOutOfStock && (product?.stock ?? 1) <= 5;
 
-  const [activeViewMode, setActiveViewMode] = useState<"gallery" | "3d_studio">("gallery");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeImageOverride, setActiveImageOverride] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -155,95 +153,66 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
         <div className="grid gap-12 lg:grid-cols-2">
-          {/* LEFT: 2D Gallery & 3D Interactive Studio Switcher */}
-          <div>
-            {/* Mode Switcher Tabs */}
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex rounded-2xl border border-amber-900/15 bg-white p-1 shadow-sm">
-                <button
-                  onClick={() => setActiveViewMode("gallery")}
-                  className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
-                    activeViewMode === "gallery"
-                      ? "bg-stone-900 text-white shadow"
-                      : "text-stone-600 hover:text-stone-900"
-                  }`}
-                >
-                  High-Res Gallery
-                </button>
-                <button
-                  onClick={() => setActiveViewMode("3d_studio")}
-                  className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition ${
-                    activeViewMode === "3d_studio"
-                      ? "bg-amber-800 text-white shadow"
-                      : "text-stone-600 hover:text-stone-900"
-                  }`}
-                >
-                  <Sparkles className="h-3.5 w-3.5 text-amber-300 animate-pulse" />
-                  <span>3D Fabric Studio</span>
-                </button>
-              </div>
-
-              <span className="text-[11px] font-semibold text-amber-800">
+          {/* LEFT: Product Gallery */}
+          <div className="space-y-4">
+            {/* Header / SKU */}
+            <div className="flex items-center justify-between pb-1">
+              <span className="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-900/10 px-3 py-1 rounded-full">
+                Heritage Creation
+              </span>
+              <span className="text-[11px] font-mono font-semibold text-stone-500">
                 SKU: {product.sku}
               </span>
             </div>
 
-            {activeViewMode === "gallery" ? (
-              <div className="space-y-4">
-                {/* Main Large Image */}
-                <div className="relative aspect-[3/4] w-full overflow-hidden rounded-3xl border border-amber-900/15 bg-stone-100 shadow-xl">
-                  <img
-                    src={currentHeroImage}
-                    alt={product.name}
-                    onError={(e) => {
-                      e.currentTarget.src = "/images/placeholder.jpg";
-                    }}
-                    className="h-full w-full object-cover object-center transition-all duration-300"
-                  />
+            {/* Main Large Image */}
+            <div className="relative aspect-[3/4] w-full overflow-hidden rounded-3xl border border-amber-900/15 bg-stone-100 shadow-xl">
+              <img
+                src={currentHeroImage}
+                alt={product.name}
+                onError={(e) => {
+                  e.currentTarget.src = "/images/placeholder.jpg";
+                }}
+                className="h-full w-full object-cover object-center transition-all duration-300"
+              />
 
-                  {discountPercent > 0 && (
-                    <span className="absolute top-4 left-4 rounded-full bg-rose-700 px-3 py-1 text-xs font-bold text-white shadow">
-                      {discountPercent}% OFF
-                    </span>
-                  )}
+              {discountPercent > 0 && (
+                <span className="absolute top-4 left-4 rounded-full bg-rose-700 px-3 py-1 text-xs font-bold text-white shadow">
+                  {discountPercent}% OFF
+                </span>
+              )}
 
+              <button
+                onClick={() => toggleWishlist(product.id)}
+                className={`absolute top-4 right-4 flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-md transition ${
+                  wishlisted
+                    ? "bg-rose-600 text-white shadow-lg"
+                    : "bg-white/80 text-stone-700 hover:bg-white hover:text-rose-600"
+                }`}
+              >
+                <Heart className={`h-5 w-5 ${wishlisted ? "fill-white" : ""}`} />
+              </button>
+            </div>
+
+            {/* Thumbnails */}
+            {product.images.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {product.images.map((img, idx) => (
                   <button
-                    onClick={() => toggleWishlist(product.id)}
-                    className={`absolute top-4 right-4 flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-md transition ${
-                      wishlisted
-                        ? "bg-rose-600 text-white shadow-lg"
-                        : "bg-white/80 text-stone-700 hover:bg-white hover:text-rose-600"
+                    key={idx}
+                    onClick={() => {
+                      setSelectedImageIndex(idx);
+                      setActiveImageOverride(null);
+                    }}
+                    className={`h-24 w-20 shrink-0 overflow-hidden rounded-2xl border-2 transition ${
+                      currentHeroImage === img
+                        ? "border-amber-600 ring-2 ring-amber-400/30"
+                        : "border-transparent opacity-70 hover:opacity-100"
                     }`}
                   >
-                    <Heart className={`h-5 w-5 ${wishlisted ? "fill-white" : ""}`} />
+                    <img src={img} alt="" className="h-full w-full object-cover" />
                   </button>
-                </div>
-
-                {/* Thumbnails */}
-                {product.images.length > 1 && (
-                  <div className="flex gap-3 overflow-x-auto pb-2">
-                    {product.images.map((img, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          setSelectedImageIndex(idx);
-                          setActiveImageOverride(null);
-                        }}
-                        className={`h-24 w-20 shrink-0 overflow-hidden rounded-2xl border-2 transition ${
-                          currentHeroImage === img
-                            ? "border-amber-600 ring-2 ring-amber-400/30"
-                            : "border-transparent opacity-70 hover:opacity-100"
-                        }`}
-                      >
-                        <img src={img} alt="" className="h-full w-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="h-[550px] w-full">
-                <SareeDrapeStudio initialPreset={product.three_d_preset || "kanchipuram"} />
+                ))}
               </div>
             )}
           </div>

@@ -51,7 +51,7 @@ export default function LoginPage() {
                 Customer Sign In
               </h2>
               <p className="mt-2 text-xs text-stone-400 leading-relaxed">
-                Sign in to view your orders, track insured doorstep delivery, explore 3D silk drape simulations, and manage your bridal wishlist.
+                Sign in to view your orders, track insured doorstep delivery, manage your boutique bag, and save your bridal wishlist.
               </p>
 
               <div className="mt-6 space-y-2 text-xs text-stone-300">

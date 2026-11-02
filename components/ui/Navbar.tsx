@@ -180,15 +180,6 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* 3D Drape Experience Link */}
-            <Link 
-              href="/#drape-studio" 
-              className="flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-50/80 px-3.5 py-1 text-xs font-semibold text-amber-900 shadow-sm transition hover:bg-amber-100"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-amber-600 animate-pulse" />
-              <span>3D Drape Studio</span>
-            </Link>
-
             <Link 
               href="/products" 
               className={`text-sm font-medium transition hover:text-amber-700 ${
@@ -323,7 +314,7 @@ export default function Navbar() {
                             Customer Sign In
                           </p>
                           <p className="text-[11px] text-stone-500 leading-tight">
-                            Orders, 3D drape & custom sizing
+                            Orders, wishlist & profile
                           </p>
                         </div>
                       </Link>
@@ -410,13 +401,6 @@ export default function Navbar() {
             </div>
 
             <div className="border-t border-amber-200/50 pt-3 space-y-2">
-              <Link
-                href="/#drape-studio"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 text-sm font-semibold text-amber-900"
-              >
-                <Sparkles className="h-4 w-4 text-amber-600" /> 3D Drape Studio
-              </Link>
               <Link
                 href="/products"
                 onClick={() => setMobileMenuOpen(false)}

@@ -95,7 +95,7 @@ export default function Footer() {
               <li><Link href="/products?category=saree&fabric=Katan+Silk" className="hover:text-amber-300 transition">Banarasi Kadwa Brocade</Link></li>
               <li><Link href="/products?category=saree&fabric=Tissue+Organza" className="hover:text-amber-300 transition">Tissue Organza Sarees</Link></li>
               <li><Link href="/products?category=saree&fabric=Viscose+Chiffon" className="hover:text-amber-300 transition">Lucknowi Chikankari Chiffon</Link></li>
-              <li><Link href="/#drape-studio" className="text-amber-400 hover:underline">3D Virtual Saree Drape</Link></li>
+              <li><Link href="/products" className="text-amber-400 hover:underline">Explore All Handlooms</Link></li>
             </ul>
           </div>
 

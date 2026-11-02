@@ -344,7 +344,7 @@ export default function QuickViewModal() {
                 onClick={() => setQuickViewProduct(null)}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 hover:underline"
               >
-                <span>View Full 3D Drape & Fabric Specifications</span>
+                <span>View Full Creation & Fabric Specifications</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>

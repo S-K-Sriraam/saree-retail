@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { useBoutique } from "@/lib/store";
 import SilkFabricHero from "@/components/three/SilkFabricHero";
-import SareeDrapeStudio from "@/components/three/SareeDrapeStudio";
 import ProductCard from "@/components/ui/ProductCard";
 
 export default function HomePage() {
@@ -88,14 +87,6 @@ export default function HomePage() {
               <span>Explore Chudar & Salwars</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
-
-            <a
-              href="#drape-studio"
-              className="flex items-center gap-2 rounded-full border border-amber-400/40 bg-black/60 px-6 py-4 text-xs font-bold text-amber-300 backdrop-blur-md shadow-xl transition hover:border-amber-400 hover:bg-black/90"
-            >
-              <Sparkles className="h-4 w-4 text-amber-400 animate-pulse" />
-              <span>3D Virtual Drape Studio</span>
-            </a>
           </div>
 
           {/* Trust Highlights */}
@@ -207,29 +198,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. 3D VIRTUAL DRAPE & FABRIC STUDIO SECTION */}
-      <section id="drape-studio" className="bg-[#0e0c12] py-20 text-white scroll-mt-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-12 text-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-amber-300">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" /> Three.js 3D Virtual Atelier
-            </span>
-            <h2 className="mt-3 text-3xl font-bold text-white font-serif-luxury sm:text-5xl">
-              Interactive 3D Drape & Texture Studio
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-xs text-stone-400 sm:text-sm">
-              Experience authentic handloom textiles in real-time WebGL. Inspect 24k gold zari borders, intricate kadwa weave reflections, and silk drape physics in full 360 degrees.
-            </p>
-          </div>
-
-          {/* Three.js Interactive Component */}
-          <div className="h-[620px] w-full">
-            <SareeDrapeStudio />
-          </div>
-        </div>
-      </section>
-
-      {/* 4. TRENDING CREATIONS / CATALOG GRID */}
+      {/* 3. TRENDING CREATIONS / CATALOG GRID */}
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <div>

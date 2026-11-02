@@ -253,7 +253,7 @@ export default function AdminProductsPage() {
             Saree & Chudar Catalog ({products.length})
           </h1>
           <p className="mt-1 text-xs text-stone-400">
-            Add new bridal silks, adjust stock numbers, edit pricing, and configure 3D fabric presets.
+            Add new bridal silks, adjust stock numbers, edit pricing, and manage inventory.
           </p>
         </div>
 
@@ -339,7 +339,6 @@ export default function AdminProductsPage() {
                 <th className="p-4 font-semibold">Fabric Weave</th>
                 <th className="p-4 font-semibold">Price</th>
                 <th className="p-4 font-semibold">Stock</th>
-                <th className="p-4 font-semibold">3D Preset</th>
                 <th className="p-4 font-semibold">Status</th>
                 <th className="p-4 font-semibold text-right">Actions</th>
               </tr>
@@ -459,12 +458,6 @@ export default function AdminProductsPage() {
                   </td>
 
                   <td className="p-4">
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-300 capitalize">
-                      <Sparkles className="h-3 w-3" /> {product.three_d_preset || "kanchipuram"}
-                    </span>
-                  </td>
-
-                  <td className="p-4">
                     <button
                       onClick={() => updateProduct(product.id, { is_active: !product.is_active })}
                       className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
@@ -532,7 +525,7 @@ export default function AdminProductsPage() {
               {editingProduct ? "Edit Boutique Creation" : "Add New Saree or Chudar"}
             </h2>
             <p className="text-xs text-stone-400 mt-1">
-              Configure product details, category, pricing, and 3D simulation drape preset.
+              Configure product details, category, pricing, and stock.
             </p>
 
             <form onSubmit={handleSaveProduct} className="mt-6 space-y-4 text-xs">
@@ -636,32 +629,15 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-semibold text-stone-300">3D Simulation Preset</label>
-                  <select
-                    value={formPreset}
-                    onChange={(e) => setFormPreset(e.target.value as any)}
-                    className="mt-1 w-full rounded-xl border border-white/15 bg-[#1f1b27] p-2.5 text-white outline-none focus:border-amber-400"
-                  >
-                    <option value="kanchipuram">Kanchipuram Pure Silk</option>
-                    <option value="banarasi">Banarasi Brocade</option>
-                    <option value="organza">Tissue Organza Sheer</option>
-                    <option value="velvet">Royal Velvet Plum</option>
-                    <option value="chiffon">Midnight Chiffon Mukaish</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-stone-300">SKU Code</label>
-                  <input
-                    type="text"
-                    value={formSku}
-                    onChange={(e) => setFormSku(e.target.value)}
-                    required
-                    className="mt-1 w-full rounded-xl border border-white/15 bg-white/5 p-2.5 text-white outline-none focus:border-amber-400"
-                  />
-                </div>
+              <div>
+                <label className="block font-semibold text-stone-300">SKU Code</label>
+                <input
+                  type="text"
+                  value={formSku}
+                  onChange={(e) => setFormSku(e.target.value)}
+                  required
+                  className="mt-1 w-full rounded-xl border border-white/15 bg-white/5 p-2.5 text-white outline-none focus:border-amber-400"
+                />
               </div>
 
               <div>
