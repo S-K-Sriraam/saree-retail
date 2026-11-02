@@ -261,7 +261,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 )}
               </div>
               <p className="mt-1 text-[11px] text-stone-500">
-                Price includes 5% GST & Silkmark certification. Free express insurance included.
+                Price includes Silkmark certification. Free express insurance included.
               </p>
 
               {/* Stock Status Banner */}

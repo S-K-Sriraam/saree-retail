@@ -1060,9 +1060,9 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartSubtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
   const cartDiscount = (cartSubtotal * discountPercent) / 100;
-  const cartTax = (cartSubtotal - cartDiscount) * 0.05;
+  const cartTax = 0;
   const cartShipping = cartSubtotal > 4999 || cartSubtotal === 0 ? 0 : 250;
-  const cartTotal = Math.max(0, cartSubtotal - cartDiscount + cartTax + cartShipping);
+  const cartTotal = Math.max(0, cartSubtotal - cartDiscount + cartShipping);
 
   return (
     <BoutiqueContext.Provider

@@ -263,10 +263,6 @@ export default function CartPage() {
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span>Goods & Services Tax (GST 5%)</span>
-                    <span>Rs. {Number(cartTax).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span>Insured Express Shipping</span>
                     <span>{cartShipping === 0 ? <strong className="text-emerald-700 font-bold uppercase">Free</strong> : `Rs. ${cartShipping}`}</span>
                   </div>

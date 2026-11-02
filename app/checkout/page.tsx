@@ -431,10 +431,6 @@ export default function CheckoutPage() {
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span>GST (5%)</span>
-                  <span>Rs. {cartTax.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
                   <span>Insured Express Courier</span>
                   <span>{cartShipping === 0 ? <strong className="text-emerald-700 font-bold uppercase">Free</strong> : `Rs. ${cartShipping}`}</span>
                 </div>

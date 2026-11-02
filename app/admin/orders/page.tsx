@@ -257,10 +257,12 @@ export default function AdminOrdersPage() {
                   <span>- Rs. {selectedOrder.discount.toLocaleString("en-IN")}</span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span>GST (5%):</span>
-                <span>Rs. {selectedOrder.tax.toFixed(2)}</span>
-              </div>
+              {selectedOrder.tax > 0 && (
+                <div className="flex justify-between">
+                  <span>GST:</span>
+                  <span>Rs. {selectedOrder.tax.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between border-t border-white/10 pt-2 text-sm font-bold text-white">
                 <span>Total Invoice:</span>
                 <span>Rs. {Math.round(selectedOrder.total).toLocaleString("en-IN")}</span>
