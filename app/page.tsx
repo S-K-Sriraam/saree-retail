@@ -347,11 +347,6 @@ export default function HomePage() {
                   className="h-full w-full object-cover"
                 />
               </div>
-              <div className="absolute -bottom-6 -left-6 rounded-2xl border border-amber-400/40 bg-white/95 p-5 shadow-2xl backdrop-blur-md max-w-xs">
-                <p className="text-2xl font-bold text-stone-900 font-serif-luxury">30+ Years</p>
-                <p className="text-xs font-medium text-amber-800">Master Handloom Legacy</p>
-                <p className="text-[10px] text-stone-500 mt-1">Curating timeless ethnic luxury across heritage flagship boutiques.</p>
-              </div>
             </div>
           </div>
         </div>

@@ -90,7 +90,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-2 text-xs text-amber-300/80">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Flagship Showrooms: Chennai &bull; Bengaluru &bull; Hyderabad &bull; Varanasi</span>
+              <span>Direct Handloom Silks &bull; Custom Tailoring &bull; Pan-India Delivery</span>
             </div>
           </div>
 
