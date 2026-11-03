@@ -12,13 +12,14 @@ import {
   MapPin,
   Phone,
   Mail,
-  X
+  X,
+  Trash2
 } from "lucide-react";
 import { useBoutique } from "@/lib/store";
 import { Order } from "@/lib/mock-data";
 
 export default function AdminOrdersPage() {
-  const { orders, updateOrderStatus } = useBoutique();
+  const { orders, updateOrderStatus, deleteOrder, clearAllOrders } = useBoutique();
 
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,16 +42,32 @@ export default function AdminOrdersPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="border-b border-amber-500/20 pb-6">
-        <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-          Fulfillment Pipeline
-        </span>
-        <h1 className="mt-1 text-2xl font-bold text-white font-serif-luxury sm:text-3xl">
-          Customer Orders & Delivery Logistics ({orders.length})
-        </h1>
-        <p className="mt-1 text-xs text-stone-400">
-          Manage handloom order milestones from artisan tailoring to insured doorstep courier dispatch.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-amber-500/20 pb-6">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+            Fulfillment Pipeline
+          </span>
+          <h1 className="mt-1 text-2xl font-bold text-white font-serif-luxury sm:text-3xl">
+            Customer Orders & Delivery Logistics ({orders.length})
+          </h1>
+          <p className="mt-1 text-xs text-stone-400">
+            Manage handloom order milestones from artisan tailoring to insured doorstep courier dispatch.
+          </p>
+        </div>
+
+        {orders.length > 0 && (
+          <button
+            onClick={() => {
+              if (window.confirm("Are you sure you want to delete all test orders and reset the dashboard to 0?")) {
+                clearAllOrders();
+              }
+            }}
+            className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition self-start sm:self-auto"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Clear All Test Orders</span>
+          </button>
+        )}
       </div>
 
       {/* Filter and Search Bar */}
@@ -102,7 +119,9 @@ export default function AdminOrdersPage() {
               {filteredOrders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-12 text-center text-stone-500">
-                    No client orders found under this status filter.
+                    {orders.length === 0
+                      ? "No customer orders received yet. Live orders will appear here automatically."
+                      : "No client orders found under this status filter."}
                   </td>
                 </tr>
               ) : (
@@ -178,12 +197,25 @@ export default function AdminOrdersPage() {
                     </td>
 
                     <td className="p-4 text-right">
-                      <button
-                        onClick={() => setSelectedOrder(order)}
-                        className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-semibold text-stone-300 hover:bg-white/10 hover:text-white transition"
-                      >
-                        Inspect
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setSelectedOrder(order)}
+                          className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-semibold text-stone-300 hover:bg-white/10 hover:text-white transition"
+                        >
+                          Inspect
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Delete order ${order.orderNumber}?`)) {
+                              deleteOrder(order.id);
+                            }
+                          }}
+                          className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-1.5 text-rose-400 hover:bg-rose-500/20 transition"
+                          title="Delete Order"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

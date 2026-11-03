@@ -36,6 +36,9 @@ export default function AdminDashboardPage() {
     return sum + cItems.reduce((acc, i) => acc + i.price * i.quantity, 0);
   }, 0);
 
+  const sareePercent = totalRevenue > 0 ? Math.round((sareeRevenue / totalRevenue) * 100) : 0;
+  const chudarPercent = totalRevenue > 0 ? Math.round((chudarRevenue / totalRevenue) * 100) : 0;
+
   const customerCount = allUsers.filter(u => u.role === "customer").length;
 
   return (
@@ -87,9 +90,15 @@ export default function AdminDashboardPage() {
           <p className="mt-3 text-2xl font-bold text-white font-serif-luxury sm:text-3xl">
             Rs. {Math.round(totalRevenue).toLocaleString("en-IN")}
           </p>
-          <p className="mt-1 flex items-center gap-1 text-[11px] text-emerald-400">
-            <ArrowUpRight className="h-3 w-3" /> +18.4% this festive season
-          </p>
+          {totalRevenue > 0 ? (
+            <p className="mt-1 flex items-center gap-1 text-[11px] text-emerald-400">
+              <ArrowUpRight className="h-3 w-3" /> +18.4% this festive season
+            </p>
+          ) : (
+            <p className="mt-1 text-[11px] text-stone-500">
+              Awaiting first live orders
+            </p>
+          )}
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-[#14111a] p-6 shadow-xl">
@@ -149,9 +158,9 @@ export default function AdminDashboardPage() {
                 <span>Rs. {sareeRevenue.toLocaleString("en-IN")}</span>
               </div>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-stone-800">
-                <div className="h-full bg-amber-500 rounded-full" style={{ width: "62%" }} />
+                <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${sareePercent}%` }} />
               </div>
-              <span className="text-[10px] text-stone-500 mt-1 block">62% of total boutique revenue</span>
+              <span className="text-[10px] text-stone-500 mt-1 block">{sareePercent}% of total boutique revenue</span>
             </div>
 
             <div className="pt-2">
@@ -160,9 +169,9 @@ export default function AdminDashboardPage() {
                 <span>Rs. {chudarRevenue.toLocaleString("en-IN")}</span>
               </div>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-stone-800">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: "38%" }} />
+                <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${chudarPercent}%` }} />
               </div>
-              <span className="text-[10px] text-stone-500 mt-1 block">38% of total boutique revenue</span>
+              <span className="text-[10px] text-stone-500 mt-1 block">{chudarPercent}% of total boutique revenue</span>
             </div>
           </div>
         </div>
@@ -214,57 +223,65 @@ export default function AdminDashboardPage() {
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-white/10 text-stone-400">
-                <th className="pb-3 font-semibold">Order Ref</th>
-                <th className="pb-3 font-semibold">Customer</th>
-                <th className="pb-3 font-semibold">Pieces</th>
-                <th className="pb-3 font-semibold">Total Amount</th>
-                <th className="pb-3 font-semibold">Current Status</th>
-                <th className="pb-3 font-semibold text-right">Quick Update</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {orders.slice(0, 5).map((order) => (
-                <tr key={order.id} className="hover:bg-white/5 transition">
-                  <td className="py-3 font-bold text-amber-300">{order.orderNumber}</td>
-                  <td className="py-3">
-                    <p className="font-semibold text-white">{order.customerName}</p>
-                    <p className="text-[10px] text-stone-500">{order.shippingAddress.city}</p>
-                  </td>
-                  <td className="py-3 text-stone-300">{order.items.length} item(s)</td>
-                  <td className="py-3 font-bold text-white">
-                    Rs. {Math.round(order.total).toLocaleString("en-IN")}
-                  </td>
-                  <td className="py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
-                      order.status === "delivered"
-                        ? "bg-emerald-500/20 text-emerald-300"
-                        : "bg-amber-500/20 text-amber-300"
-                    }`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="py-3 text-right">
-                    <select
-                      value={order.status}
-                      onChange={(e) => updateOrderStatus(order.id, e.target.value as any)}
-                      className="rounded-xl border border-white/20 bg-[#1a1722] px-2.5 py-1 text-xs text-white outline-none focus:border-amber-400"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="processing">Processing</option>
-                      <option value="handcrafted">Handcrafted</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="delivered">Delivered</option>
-                    </select>
-                  </td>
+        {orders.length === 0 ? (
+          <div className="py-12 text-center text-stone-400">
+            <Package className="mx-auto h-10 w-10 text-stone-600 mb-2" />
+            <p className="text-sm font-semibold text-stone-300">No Orders Received Yet</p>
+            <p className="text-xs text-stone-500 mt-1">Live customer orders will appear here automatically with real-time status tracking.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-white/10 text-stone-400">
+                  <th className="pb-3 font-semibold">Order Ref</th>
+                  <th className="pb-3 font-semibold">Customer</th>
+                  <th className="pb-3 font-semibold">Pieces</th>
+                  <th className="pb-3 font-semibold">Total Amount</th>
+                  <th className="pb-3 font-semibold">Current Status</th>
+                  <th className="pb-3 font-semibold text-right">Quick Update</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {orders.slice(0, 5).map((order) => (
+                  <tr key={order.id} className="hover:bg-white/5 transition">
+                    <td className="py-3 font-bold text-amber-300">{order.orderNumber}</td>
+                    <td className="py-3">
+                      <p className="font-semibold text-white">{order.customerName}</p>
+                      <p className="text-[10px] text-stone-500">{order.shippingAddress.city}</p>
+                    </td>
+                    <td className="py-3 text-stone-300">{order.items.length} item(s)</td>
+                    <td className="py-3 font-bold text-white">
+                      Rs. {Math.round(order.total).toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3">
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
+                        order.status === "delivered"
+                          ? "bg-emerald-500/20 text-emerald-300"
+                          : "bg-amber-500/20 text-amber-300"
+                      }`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="py-3 text-right">
+                      <select
+                        value={order.status}
+                        onChange={(e) => updateOrderStatus(order.id, e.target.value as any)}
+                        className="rounded-xl border border-white/20 bg-[#1a1722] px-2.5 py-1 text-xs text-white outline-none focus:border-amber-400"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="handcrafted">Handcrafted</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

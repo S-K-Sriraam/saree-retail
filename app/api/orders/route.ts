@@ -147,3 +147,35 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+// DELETE /api/orders - Delete an order or clear all orders
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const orderId = searchParams.get("id");
+    const clearAll = searchParams.get("all") === "true";
+
+    let url = `${SUPABASE_URL}/rest/v1/orders`;
+    if (orderId) {
+      url += `?id=eq.${encodeURIComponent(orderId)}`;
+    } else if (clearAll) {
+      url += `?id=neq.placeholder_keep_none`;
+    } else {
+      return NextResponse.json({ success: false, error: "Order ID or all=true required" }, { status: 400 });
+    }
+
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: HEADERS
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      return NextResponse.json({ success: false, error: err }, { status: res.status });
+    }
+
+    return NextResponse.json({ success: true, message: "Order(s) deleted successfully" });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}

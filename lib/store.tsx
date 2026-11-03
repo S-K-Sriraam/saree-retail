@@ -107,6 +107,8 @@ interface BoutiqueContextType {
   createOrder: (orderData: Omit<Order, "id" | "orderNumber" | "date" | "status">) => Order;
   updateOrderStatus: (orderId: string, status: Order["status"]) => void;
   cancelOrder: (orderId: string) => void;
+  deleteOrder: (orderId: string) => void;
+  clearAllOrders: () => void;
 
   // UI state
   isCartDrawerOpen: boolean;
@@ -121,7 +123,7 @@ const BoutiqueContext = createContext<BoutiqueContextType | undefined>(undefined
 
 const STORAGE_KEYS = {
   PRODUCTS: "gv_boutique_fresh_slate_v6_prods",
-  ORDERS: "gv_boutique_fresh_slate_v6_ords",
+  ORDERS: "gv_boutique_live_orders_v7",
   CART: "gv_boutique_fresh_slate_v6_cart",
   WISHLIST: "gv_boutique_fresh_slate_v6_wish",
   CUSTOMER: "gv_boutique_fresh_slate_v6_cust",
@@ -150,6 +152,10 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Load from localStorage on client mount
   useEffect(() => {
     try {
+      // Purge old test orders caches
+      localStorage.removeItem("gv_boutique_fresh_slate_v6_ords");
+      localStorage.removeItem("gv_boutique_orders");
+
       const savedProducts = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
       if (savedProducts) setProducts(JSON.parse(savedProducts));
 
@@ -253,26 +259,11 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     fetch("/api/orders")
       .then(res => res.json())
       .then(result => {
-        if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+        if (result.success && Array.isArray(result.data)) {
           setOrders(result.data);
-          localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(result.data));
-        } else {
-          // Supabase is empty → push our local orders up to Supabase
-          const localOrders = (() => {
-            try {
-              const saved = localStorage.getItem(STORAGE_KEYS.ORDERS);
-              return saved ? JSON.parse(saved) : [];
-            } catch { return []; }
-          })();
-          if (localOrders.length > 0) {
-            Promise.all(localOrders.map((o: any) =>
-              fetch("/api/orders", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(o)
-              }).catch(() => null)
-            )).then(() => console.log("Local orders synced to Supabase."));
-          }
+          try {
+            localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(result.data));
+          } catch {}
         }
       })
     // Sync all profiles for admin management
@@ -1056,6 +1047,30 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }).catch(e => console.warn("Supabase cancel order error:", e));
   };
 
+  const deleteOrder = (orderId: string) => {
+    setOrders(prev => prev.filter(o => o.id !== orderId));
+    try {
+      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders.filter(o => o.id !== orderId)));
+    } catch {}
+    showToast("Order removed.");
+
+    fetch(`/api/orders?id=${encodeURIComponent(orderId)}`, {
+      method: "DELETE"
+    }).catch(e => console.warn("Supabase delete order error:", e));
+  };
+
+  const clearAllOrders = () => {
+    setOrders([]);
+    try {
+      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([]));
+    } catch {}
+    showToast("All orders refreshed to 0.");
+
+    fetch(`/api/orders?all=true`, {
+      method: "DELETE"
+    }).catch(e => console.warn("Supabase clear orders error:", e));
+  };
+
   // Derived calculations
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartSubtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -1110,6 +1125,8 @@ export const BoutiqueProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         createOrder,
         updateOrderStatus,
         cancelOrder,
+        deleteOrder,
+        clearAllOrders,
         isCartDrawerOpen,
         setIsCartDrawerOpen,
         quickViewProduct,
